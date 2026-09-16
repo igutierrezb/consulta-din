@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#005c4b">
+  <title>Consulta Académica DIN</title>
+  <style>
+    :root {
+      --green-900: #063f36;
+      --green-800: #005c4b;
+      --green-700: #087565;
+      --green-100: #dff5ef;
+      --lime: #b7d532;
+      --ink: #17322d;
+      --muted: #64746f;
+      --line: #dbe6e2;
+      --surface: #ffffff;
+      --background: #f3f7f5;
+      --shadow: 0 14px 38px rgba(15, 68, 57, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 100% 0, rgba(183, 213, 50, .18), transparent 28rem),
+        var(--background);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell {
+      width: min(1060px, 100%);
+      margin: 0 auto;
+      padding: 24px 18px 72px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 30px;
+      color: white;
+      border-radius: 28px;
+      background: linear-gradient(135deg, var(--green-900), var(--green-700));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "DIN";
+      position: absolute;
+      right: -18px;
+      bottom: -48px;
+      color: rgba(255,255,255,.07);
+      font-size: clamp(7rem, 20vw, 13rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -.08em;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: #d9fff4;
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--lime);
+      box-shadow: 0 0 0 5px rgba(183,213,50,.16);
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.7rem);
+      line-height: 1.02;
+      letter-spacing: -.045em;
+    }
+
+    .hero p {
+      position: relative;
+      z-index: 1;
+      max-width: 650px;
+      margin: 13px 0 0;
+      color: rgba(255,255,255,.78);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .period {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      margin-top: 20px;
+      padding: 9px 13px;
+      border: 1px solid rgba(255,255,255,.19);
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      font-size: .88rem;
+      font-weight: 750;
+      backdrop-filter: blur(8px);
+    }
+
+    .panel {
+      margin-top: 20px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 10px 30px rgba(15,68,57,.07);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 5px;
+      border-radius: 17px;
+      background: #edf3f1;
+    }
+
+    .tab {
+      min-height: 48px;
+      padding: 10px 14px;
+      color: var(--muted);
+      border: 0;
+      border-radius: 13px;
+      background: transparent;
+      font-weight: 800;
+    }
+
+    .tab.active {
+      color: white;
+      background: var(--green-800);
+      box-shadow: 0 6px 16px rgba(0,92,75,.22);
+    }
+
+    .search-wrap {
+      position: relative;
+      margin-top: 18px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--green-700);
+      font-size: 1.3rem;
+      pointer-events: none;
+    }
+
+    #search {
+      width: 100%;
+      min-height: 58px;
+      padding: 14px 48px 14px 52px;
+      color: var(--ink);
+      border: 2px solid var(--line);
+      border-radius: 17px;
+      outline: none;
+      background: white;
+      font-size: 1rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    #search:focus {
+      border-color: var(--green-700);
+      box-shadow: 0 0 0 4px rgba(8,117,101,.11);
+    }
+
+    .clear {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      display: none;
+      width: 34px;
+      height: 34px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      border: 0;
+      border-radius: 50%;
+      background: #edf3f1;
+      font-size: 1.2rem;
+    }
+
+    .helper {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .result-count { font-weight: 750; }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: 0 8px 22px rgba(15,68,57,.06);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(var(--lime), var(--green-700));
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .code {
+      margin: 0;
+      color: var(--green-900);
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: -.025em;
+    }
+
+    .badge {
+      flex: none;
+      padding: 6px 9px;
+      color: var(--green-800);
+      border-radius: 999px;
+      background: var(--green-100);
+      font-size: .72rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .career {
+      margin: -10px 0 16px;
+      color: var(--muted);
+      font-size: .84rem;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .detail {
+      min-height: 72px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: #f3f7f5;
+    }
+
+    .detail.wide { grid-column: 1 / -1; }
+    .label { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .value { margin-top: 5px; font-size: .94rem; font-weight: 800; line-height: 1.35; word-break: break-word; }
+
+    .empty, .loading, .error {
+      grid-column: 1 / -1;
+      padding: 40px 20px;
+      text-align: center;
+      border: 1px dashed #bfd0ca;
+      border-radius: 20px;
+      background: rgba(255,255,255,.62);
+      color: var(--muted);
+    }
+
+    .empty strong, .error strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-size: 1.03rem;
+    }
+
+    .spinner {
+      width: 34px;
+      height: 34px;
+      margin: 0 auto 12px;
+      border: 4px solid #d9e7e2;
+      border-top-color: var(--green-700);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: .78rem;
+    }
+
+    @media (max-width: 720px) {
+      .shell { padding: 12px 12px 48px; }
+      .hero { padding: 25px 21px; border-radius: 22px; }
+      .panel { padding: 15px; border-radius: 20px; }
+      .results { grid-template-columns: 1fr; }
+      .helper { flex-direction: column; gap: 4px; }
+    }
+
+    @media (max-width: 420px) {
+      .tab { padding-inline: 8px; font-size: .86rem; }
+      .details { grid-template-columns: 1fr; }
+      .detail.wide { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">División Industrial · UTEQ</div>
+      <h1>Consulta académica DIN</h1>
+      <p>Encuentra en segundos tu grupo, tutor, salón o edificio.</p>
+      <div class="period" id="period">Cargando periodo…</div>
+    </header>
+
+    <section class="panel" aria-label="Consulta académica">
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="groupsTab" type="button" role="tab" aria-selected="true">Mi grupo o tutor</button>
+        <button class="tab" id="roomsTab" type="button" role="tab" aria-selected="false">Aulas y edificios</button>
+      </div>
+
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="search" type="search" autocomplete="off" placeholder="Escribe tu grupo o el nombre de tu tutor" aria-label="Buscar">
+        <button class="clear" id="clear" type="button" aria-label="Limpiar búsqueda">×</button>
+      </div>
+
+      <div class="helper">
+        <span id="hint">Ejemplo: LII010 o Angélica Sánchez</span>
+        <span class="result-count" id="count"></span>
+      </div>
+
+      <div class="results" id="results" aria-live="polite">
+        <div class="loading"><div class="spinner"></div>Cargando información académica…</div>
+      </div>
+    </section>
+
+    <footer>La información se actualiza desde la base académica publicada.</footer>
+  </main>
+
+  <script>
+    const SHEET_ID = '1LmAg9YJesg79BmDfi7Iax0eL27jtWfswP5R6Vgu-WIo';
+    const SHEETS = ['PERIODOS', 'GRUPOS', 'EDIFICIOS', 'AULAS', 'ASIGNACION_AULAS'];
+
+    const state = {
+      mode: 'groups',
+      period: null,
+      groups: [],
+      rooms: [],
+      buildings: [],
+      assignments: []
+    };
+
+    const el = {
+      period: document.getElementById('period'),
+      search: document.getElementById('search'),
+      clear: document.getElementById('clear'),
+      hint: document.getElementById('hint'),
+      count: document.getElementById('count'),
+      results: document.getElementById('results'),
+      groupsTab: document.getElementById('groupsTab'),
+      roomsTab: document.getElementById('roomsTab')
+    };
+
+    function normalize(value) {
+      return String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function isTrue(value) {
+      return value === true || normalize(value) === 'true' || normalize(value) === 'verdadero' || value === 1;
+    }
+
+    function tableToObjects(table) {
+      const keys = table.cols.map((col, index) => normalize(col.label || col.id || `col${index}`));
+      return table.rows.map(row => {
+        const item = {};
+        keys.forEach((key, index) => {
+          const cell = row.c[index];
+          item[key] = cell ? (cell.f ?? cell.v ?? '') : '';
+        });
+        return item;
+      });
+    }
+
+    function loadSheet(sheet) {
+      return new Promise((resolve, reject) => {
+        const callback = `sheetCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const timeout = setTimeout(() => finish(new Error(`No respondió la pestaña ${sheet}`)), 15000);
+
+        function finish(error, data) {
+          clearTimeout(timeout);
+          delete window[callback];
+          script.remove();
+          error ? reject(error) : resolve(data);
+        }
+
+        window[callback] = response => {
+          if (response.status === 'error') {
+            finish(new Error(`No se pudo leer ${sheet}`));
+            return;
+          }
+          finish(null, tableToObjects(response.table));
+        };
+
+        script.onerror = () => finish(new Error(`No se pudo conectar con ${sheet}`));
+        script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&headers=1&tqx=responseHandler:${callback}`;
+        document.head.appendChild(script);
+      });
+    }
+
+    function getRoomForGroup(group) {
+      const assignment = state.assignments.find(item =>
+        String(item.id_grupo) === String(group.id_grupo) &&
+        (!item.periodo || String(item.periodo) === String(state.period?.id_periodo)) &&
+        (item.activo === '' || isTrue(item.activo))
+      );
+      const roomId = assignment?.id_aula || group.aula;
+      return state.rooms.find(room => String(room.id_aula) === String(roomId)) || null;
+    }
+
+    function buildingName(code) {
+      const building = state.buildings.find(item =>
+        normalize(item.nombre) === normalize(code) || normalize(item.id_edificio) === normalize(code)
+      );
+      return building?.nombre_completo || building?.nombre || code || 'Sin edificio';
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      const groups = mode === 'groups';
+      el.groupsTab.classList.toggle('active', groups);
+      el.roomsTab.classList.toggle('active', !groups);
+      el.groupsTab.setAttribute('aria-selected', String(groups));
+      el.roomsTab.setAttribute('aria-selected', String(!groups));
+      el.search.placeholder = groups
+        ? 'Escribe tu grupo o el nombre de tu tutor'
+        : 'Escribe un edificio, aula o planta';
+      el.hint.textContent = groups
+        ? 'Ejemplo: LII010 o Angélica Sánchez'
+        : 'Ejemplo: Edificio F, planta alta o salón 10';
+      el.search.value = '';
+      el.clear.style.display = 'none';
+      showWelcome();
+      el.search.focus();
+    }
+
+    function showWelcome() {
+      el.count.textContent = '';
+      el.results.innerHTML = `
+        <div class="empty">
+          <strong>${state.mode === 'groups' ? '¿Qué grupo buscas?' : '¿Qué espacio buscas?'}</strong>
+          ${state.mode === 'groups'
+            ? 'Escribe el código del grupo o parte del nombre del tutor.'
+            : 'Escribe el edificio, salón, planta o tipo de aula.'}
+        </div>`;
+    }
+
+    function groupCard(group) {
+      const room = getRoomForGroup(group);
+      const location = room
+        ? `${buildingName(room.edificio)} · ${room.planta || 'Planta sin especificar'} · ${room.tipo || 'Aula'} ${room.salon || ''}`
+        : (group.aula || 'Pendiente de asignación');
+      return `
+        <article class="card">
+          <div class="card-head">
+            <h2 class="code">${escapeHtml(group.grupo)}</h2>
+            <span class="badge">${escapeHtml(group.cuatrimestre ? `${group.cuatrimestre}.º cuatri` : 'Grupo')}</span>
+          </div>
+          <p class="career">${escapeHtml([group.ingenieria, group.salida_lateral].filter(Boolean).join(' · '))}</p>
+          <div class="details">
+            <div class="detail wide"><div class="label">Tutor</div><div class="value">${escapeHtml(group.tutor || 'Sin tutor asignado')}</div></div>
+            <div class="detail"><div class="label">Generación</div><div class="value">${escapeHtml(group.generacion || '—')}</div></div>
+            <div class="detail"><div class="label">Ubicación</div><div class="value">${escapeHtml(location)}</div></div>
+          </div>
+        </article>`;
+    }
+
+    function roomCard(room) {
+      const title = room.salon ? `Salón ${room.salon}` : (room.tipo || 'Espacio');
+      return `
+        <article class="card">
+          <div class="card-head">
+            <h2 class="code">${escapeHtml(title)}</h2>
+            <span class="badge">${escapeHtml(room.tipo || 'Aula')}</span>
+          </div>
+          <p class="career">${escapeHtml(buildingName(room.edificio))}</p>
+          <div class="details">
+            <div class="detail"><div class="label">Planta</div><div class="value">${escapeHtml(room.planta || '—')}</div></div>
+            <div class="detail"><div class="label">Capacidad</div><div class="value">${escapeHtml(room.capacidad ? `${room.capacidad} personas` : '—')}</div></div>
+            ${room.observaciones ? `<div class="detail wide"><div class="label">Observaciones</div><div class="value">${escapeHtml(room.observaciones)}</div></div>` : ''}
+          </div>
+        </article>`;
+    }
+
+    function search() {
+      const raw = el.search.value;
+      const query = normalize(raw);
+      el.clear.style.display = raw ? 'block' : 'none';
+      if (!query) {
+        showWelcome();
+        return;
+      }
+
+      let results;
+      if (state.mode === 'groups') {
+        results = state.groups.filter(group => normalize([
+          group.grupo, group.tutor, group.ingenieria, group.salida_lateral, group.generacion
+        ].join(' ')).includes(query));
+        results.sort((a, b) => String(a.grupo).localeCompare(String(b.grupo), 'es', { numeric: true }));
+      } else {
+        results = state.rooms.filter(room => normalize([
+          room.id_aula, room.edificio, buildingName(room.edificio), room.planta,
+          room.salon, room.tipo, room.capacidad, room.observaciones
+        ].join(' ')).includes(query));
+        results.sort((a, b) => String(a.id_aula).localeCompare(String(b.id_aula), 'es', { numeric: true }));
+      }
+
+      el.count.textContent = `${results.length} ${results.length === 1 ? 'resultado' : 'resultados'}`;
+      if (!results.length) {
+        el.results.innerHTML = '<div class="empty"><strong>No encontramos coincidencias</strong>Prueba con menos palabras o revisa la escritura.</div>';
+        return;
+      }
+      el.results.innerHTML = results.slice(0, 60).map(state.mode === 'groups' ? groupCard : roomCard).join('');
+    }
+
+    async function start() {
+      try {
+        const [periods, groups, buildings, rooms, assignments] = await Promise.all(SHEETS.map(loadSheet));
+        state.period = periods.find(item => isTrue(item.activo)) || periods[0] || null;
+        state.groups = groups.filter(item =>
+          !state.period || !item.periodo || String(item.periodo) === String(state.period.id_periodo)
+        );
+        state.buildings = buildings.filter(item => item.activo === '' || isTrue(item.activo));
+        state.rooms = rooms.filter(item => item.activo === '' || isTrue(item.activo));
+        state.assignments = assignments;
+        el.period.textContent = state.period?.nombre || 'Periodo vigente';
+        showWelcome();
+      } catch (error) {
+        console.error(error);
+        el.period.textContent = 'Sin conexión';
+        el.results.innerHTML = '<div class="error"><strong>No pudimos cargar la información</strong>Actualiza la página en unos segundos. Si el problema continúa, revisa que la hoja siga publicada en la web.</div>';
+      }
+    }
+
+    el.groupsTab.addEventListener('click', () => setMode('groups'));
+    el.roomsTab.addEventListener('click', () => setMode('rooms'));
+    el.search.addEventListener('input', search);
+    el.clear.addEventListener('click', () => {
+      el.search.value = '';
+      el.clear.style.display = 'none';
+      showWelcome();
+      el.search.focus();
+    });
+
+    start();
+  </script>
+</body>
+</html>
