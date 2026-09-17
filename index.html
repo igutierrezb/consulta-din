@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="es">
 <head>
- <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#103f38">
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0055a5">
  <meta name="description" content="Consulta tu grupo, tutor y aula. Explora los planos de los edificios de la División Industrial.">
  <title>Buscador de Salones DIN</title>
  <link rel="stylesheet" href="estilos.css">
- <script defer src="config.js"></script><script defer src="horarios-indice.js"></script><script defer src="planos.js"></script><script defer src="datos.js"></script><script defer src="app.js"></script>
+ <script defer src="config.js"></script><script defer src="planos.js"></script><script defer src="datos.js"></script><script defer src="horarios.js"></script><script defer src="app.js"></script>
 </head>
 <body>
  <a class="skip" href="#consulta">Saltar a la consulta</a>
@@ -18,14 +18,14 @@
   <section class="stats" aria-label="Resumen"><div><strong id="statGroups">—</strong><span>grupos en el periodo</span></div><div><strong id="statBuildings">—</strong><span>edificios activos</span></div><div><strong id="statPlans">—</strong><span>planos para orientarte</span></div><p>Consulta fácil,<br><b>desde donde estés.</b></p></section>
   <section class="workspace" id="consulta">
    <div class="section-top"><div><span class="eyebrow dark">TU INFORMACIÓN, A UN PASO</span><h2>¿Qué estás buscando?</h2></div><button id="refresh" class="text-button" type="button">↻ Actualizar datos</button></div>
-   <div class="tabs" aria-label="Tipo de consulta"><button id="groupsTab" type="button" aria-pressed="true" class="active">⌕ &nbsp; Grupos y tutores</button><button id="roomsTab" type="button" aria-pressed="false">▦ &nbsp; Edificios División Industrial</button></div>
-   <div class="search-row"><div class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="Buscar grupo, tutor, carrera o correo" placeholder="Busca por grupo, tutor, carrera o correo…" autocomplete="off"><button id="clear" type="button" aria-label="Limpiar búsqueda" hidden>×</button></div><label class="filter" id="careerWrap">Carrera<select id="career"><option value="">Todas las carreras</option></select></label></div>
+   <nav class="tabs" aria-label="Tipo de consulta"><button type="button" data-mode="groups" aria-pressed="true" class="active"><span aria-hidden="true">▤</span>Grupos</button><button type="button" data-mode="tutors" aria-pressed="false" class=""><span aria-hidden="true">♙</span>Tutores</button><button type="button" data-mode="profesores" aria-pressed="false" class=""><span aria-hidden="true">◷</span>Horarios de maestros</button><button type="button" data-mode="grupos" aria-pressed="false" class=""><span aria-hidden="true">▦</span>Horarios por grupo</button><button type="button" data-mode="rooms" aria-pressed="false" class=""><span aria-hidden="true">⌖</span>Edificios División Industrial</button></nav>
+   <div class="search-row" id="academicSearch"><div class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="Buscar grupo, tutor, carrera o correo" placeholder="Busca por grupo, tutor, carrera o correo…" autocomplete="off"><button id="clear" type="button" aria-label="Limpiar búsqueda" hidden>×</button></div><label class="filter" id="careerWrap">Carrera<select id="career"><option value="">Todas las carreras</option></select></label></div>
    <p class="hint" id="hint">Escribe el código completo de tu grupo o una parte del nombre de tu tutor.</p>
    <div id="status" class="status" role="status">Cargando la información académica…</div>
-   <div class="results-heading"><h3 id="resultTitle">Grupos del periodo</h3><span id="count" aria-live="polite"></span></div>
+   <div class="results-heading" id="academicHeading"><h3 id="resultTitle">Grupos del periodo</h3><span id="count" aria-live="polite"></span></div>
    <div id="results" class="results"></div>
+  <section id="horarios" aria-label="Horarios académicos" hidden></section>
   </section>
-  <section id="horarios" class="schedules" aria-label="Horarios académicos"></section>
   <aside class="help-note"><span>i</span><p><strong>¿No aparece tu aula o tu correo?</strong> La información depende del registro académico. Si está pendiente, escribe a <a href="mailto:ivan.gutierrez@uteq.edu.mx">ivan.gutierrez@uteq.edu.mx</a> · Ext. 2441.</p></aside>
  </main>
  <footer class="wrap"><p>Elaborado por Iván Gutiérrez Bautista, Jefe de Coordinación Académica, División Industrial, Turno Matutino.<br><a href="mailto:ivan.gutierrez@uteq.edu.mx">ivan.gutierrez@uteq.edu.mx</a> · Extensión 2441</p><span>Planos esquemáticos<br>de orientación · Sin escala</span></footer>

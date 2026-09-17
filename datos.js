@@ -20,7 +20,21 @@
   function building(code){const matches=(data.EDIFICIOS||[]).filter(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>norm(v)===norm(code)));return matches.length===1&&active(matches[0].activo)?matches[0]:null;}
   const allRooms=data.AULAS||[];
   const rooms=allRooms.filter(r=>active(r.activo)&&building(r.edificio)&&unique(allRooms,'id_aula',r.id_aula));
-  const assignments=(data.ASIGNACION_AULAS||[]).filter(a=>period&&str(a.periodo)===str(period.id_periodo));
+  const issues=[];
+  const same=(a,b)=>norm(a).replace(/\s/g,'')===norm(b).replace(/\s/g,'');
+  const floor=v=>norm(v).replace(/^planta /,'');
+  const assignments=(data.ASIGNACION_AULAS||[]).flatMap((a,i)=>{
+   if(!period||str(a.periodo)!==str(period.id_periodo)||!active(a.activo))return [];
+   const fail=message=>{issues.push('ASIGNACION_AULAS, fila '+(i+2)+': '+message);return [];};
+   const byName=Object.hasOwn(a,'grupo')||Object.hasOwn(a,'salon');
+   if(!byName)return [a]; // Compatibilidad con la hoja anterior durante la migración.
+   if(!str(a.grupo)||!str(a.salon))return fail('Completa grupo y salón.');
+   const gs=groups.filter(g=>same(g.grupo,a.grupo));
+   if(gs.length!==1)return fail('Grupo «'+str(a.grupo)+'» '+(gs.length?'ambiguo; hay códigos duplicados.':'inexistente o inactivo en el periodo.'));
+   const rs=rooms.filter(r=>same(roomLabel(r),a.salon)&&(!str(a.edificio)||building(a.edificio)===building(r.edificio))&&(!str(a.planta)||floor(a.planta)===floor(r.planta)));
+   if(rs.length!==1)return fail('Salón «'+str(a.salon)+'» '+(rs.length?'ambiguo; indica edificio y planta.':'inexistente o inactivo; revisa edificio, planta y nombre.'));
+   return [{...a,id_grupo:gs[0].id_grupo,id_aula:rs[0].id_aula}];
+  });
   function placements(g){
    if(!period||!str(g.id_grupo)||unique(allGroups,'id_grupo',g.id_grupo)!==g)return [];
    return assignments.filter(a=>active(a.activo)&&str(a.id_grupo)===str(g.id_grupo)).flatMap(a=>{const room=unique(rooms,'id_aula',a.id_aula);return room?[{assignment:a,room,building:building(room.edificio)}]:[];});
@@ -40,10 +54,11 @@
    const spaces=plan.spaces.filter(s=>s.key===key);return spaces.length===1?{plan,space:spaces[0]}:null;
   }
   function roomLabel(room){
-   const id=str(room.id_aula);const p=plans.find(p=>id.startsWith(p.id+'-'));const s=p?.spaces.find(s=>s.key===id.slice(p.id.length+1));
+   if(str(room.nombre))return str(room.nombre);
+   const id=str(room.id_aula);const b=building(room.edificio);const p=plans.find(p=>p.edificio===b?.id_edificio&&norm(p.planta)===norm(room.planta).replace(/^planta /,''));const s=p?.spaces.find(s=>s.key===(str(room.posicion)||id.slice(p.id.length+1)));
    return s?.label||(str(room.salon)?'Salón '+str(room.salon):id.split('-').slice(2).join(' ').replaceAll('_',' '))||str(room.tipo)||'Aula';
   }
-  return {periods,period,groups,buildings,rooms,assignments,building,placements,geometry,roomLabel};
+  return {periods,period,groups,buildings,rooms,assignments,issues,building,placements,geometry,roomLabel};
  }
  const api={str,norm,active,esc,unique,objects,model};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DIN=api;
