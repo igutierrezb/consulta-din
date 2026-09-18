@@ -147,4 +147,3 @@ setMode('groups');start();
 // Revalidación periódica; cada módulo informa su disponibilidad.
 setInterval(()=>{if(!document.hidden)start();},300000);
 
-

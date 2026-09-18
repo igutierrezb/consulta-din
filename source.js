@@ -35,4 +35,3 @@ window.DIN_SOURCE=(()=>{
  }
  return {load,rpc};
 })();
-

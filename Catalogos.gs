@@ -6,6 +6,7 @@ function filas_(book,name){
  return values.map(row=>Object.fromEntries(keys.map((k,i)=>[k,row[i]]))).filter(row=>Object.values(row).some(Boolean));
 }
 function prepararListas(){
+ adminIdentity_();
  const book=SpreadsheetApp.openById(CONFIG_DIN.sheetId),active=v=>['true','verdadero','1','si'].includes(normalizar_(v));
  const groups=filas_(book,'GRUPOS'),rooms=filas_(book,'AULAS').filter(r=>active(r.activo)),buildings=filas_(book,'EDIFICIOS').filter(b=>active(b.activo)),periods=filas_(book,'PERIODOS').filter(p=>active(p.activo));
  if(rooms.some(r=>!r.nombre))throw Error('Completa primero AULAS.nombre usando AULAS_NOMBRES.csv. Ninguna fila activa debe quedar sin nombre.');
@@ -23,6 +24,7 @@ function prepararListas(){
 
 /** Crea una hoja nueva; nunca reemplaza ASIGNACION_AULAS. Conserva filas vacías como pendientes. */
 function prepararMigracion(){
+ adminIdentity_();
  const book=SpreadsheetApp.openById(CONFIG_DIN.sheetId),rooms=filas_(book,'AULAS'),groups=filas_(book,'GRUPOS'),buildings=filas_(book,'EDIFICIOS'),original=filas_(book,'ASIGNACION_AULAS');
  if(rooms.some(r=>!r.nombre))throw Error('Primero completa AULAS.nombre. Consulta la guía y AULAS_NOMBRES.csv.');
  const out=[['periodo','grupo','edificio','planta','salon','turno','activo','revision']];

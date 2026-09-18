@@ -112,4 +112,3 @@ window.DIN_SCHEDULE=(()=>{
  return {mount,select:(type,name)=>{queries[type]=name;host.querySelector('#scheduleQuery').value=name;search(type,name);},cancel:()=>{++serial;},identify};
 })();
 
-

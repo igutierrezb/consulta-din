@@ -5,4 +5,3 @@ window.DIN_CONFIG = {
   contacto: 'ivan.gutierrez@uteq.edu.mx',
   extension: '2441'
 };
-

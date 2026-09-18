@@ -68,4 +68,3 @@ Los borradores y publicaciones se conservan en Drive. No borrar los archivos ind
 Para revertir datos, usar Restaurar publicación anterior. Para revertir código, seleccionar la versión anterior del despliegue Apps Script y/o del repositorio.
 
 Referencias: [Apps Script](https://developers.google.com/apps-script/guides/web), [identidad de sesión](https://developers.google.com/apps-script/reference/base/session), [SheetJS](https://docs.sheetjs.com/docs/getting-started/installation/standalone/).
-
