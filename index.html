@@ -3,16 +3,16 @@
 <head>
  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0055a5">
  <meta name="description" content="Consulta tu grupo, tutor y aula. Explora los planos de los edificios de la División Industrial.">
- <title>Buscador de Salones DIN</title>
+ <title>Consulta DIN</title>
  <link rel="stylesheet" href="estilos.css">
- <script defer src="config.js"></script><script defer src="planos.js"></script><script defer src="datos.js"></script><script defer src="horarios.js"></script><script defer src="app.js"></script>
+ <script defer src="config.js"></script><script defer src="planos.js"></script><script defer src="datos.js"></script><script defer src="horarios.js"></script><script defer src="source.js"></script><script defer src="app.js"></script>
 </head>
 <body>
  <a class="skip" href="#consulta">Saltar a la consulta</a>
- <header class="masthead wrap"><a class="brand" href="./" aria-label="Buscador de Salones DIN, inicio"><span class="brand-mark">D<span>↗</span></span><span>DIN<span class="brand-sub">DIVISIÓN INDUSTRIAL · TURNO MATUTINO</span></span></a><span class="header-note">División Industrial · Turno matutino</span><span class="online" id="connection">Conectando…</span></header>
+ <header class="masthead wrap"><a class="brand" href="./" aria-label="Buscador de Salones DIN, inicio"><span class="brand-mark">D<span>↗</span></span><span>DIN<span class="brand-sub">DIVISIÓN INDUSTRIAL · TURNO MATUTINO</span></span></a><a class="header-note" href="admin.html">Administración ↗</a><span class="online" id="connection">Conectando…</span></header>
  <main class="wrap">
   <section class="hero">
-   <div class="hero-copy"><span class="eyebrow"><i></i> DIVISIÓN INDUSTRIAL · TURNO MATUTINO</span><h1>Buscador de<br><em>Salones DIN</em></h1><p>Tu tutor, tu aula y el camino para llegar.<br>Toda tu información académica en un solo lugar.</p><label class="period-label" for="period">Periodo de consulta</label><select id="period" disabled aria-label="Periodo de consulta"><option>Cargando periodos…</option></select></div>
+   <div class="hero-copy"><span class="eyebrow"><i></i> DIVISIÓN INDUSTRIAL · TURNO MATUTINO</span><h1>Tu vida académica,<br><em>en un solo lugar.</em></h1><p>Tu tutor, tu aula y el camino para llegar.<br>Toda tu información académica en un solo lugar.</p><label class="period-label" for="period">Periodo de consulta</label><select id="period" disabled aria-label="Periodo de consulta"><option>Cargando periodos…</option></select></div>
    <div class="hero-art" aria-hidden="true"><div class="campus-grid"><span class="block b1">F</span><span class="block b2">G</span><span class="block b3">I</span><span class="block b4">H1</span><span class="block b5">H</span><span class="block b6">PIDET</span><span class="block b7">CIC</span><span class="pin">↗</span></div><div class="art-caption"><span>EXPLORA TU CAMPUS</span><strong>Un lugar para aprender.</strong></div></div>
   </section>
   <section class="stats" aria-label="Resumen"><div><strong id="statGroups">—</strong><span>grupos en el periodo</span></div><div><strong id="statBuildings">—</strong><span>edificios activos</span></div><div><strong id="statPlans">—</strong><span>planos para orientarte</span></div><p>Consulta fácil,<br><b>desde donde estés.</b></p></section>
