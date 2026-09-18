@@ -1,18 +1,25 @@
 /* Lee Drive mediante el servicio de solo lectura y dibuja únicamente el resultado elegido. */
 window.DIN_SCHEDULE=(()=>{
  'use strict';
- const {norm,esc}=DIN,cache=new Map(),queries={profesores:'',grupos:''};
+ const {norm,esc}=DIN,cache=new Map(),pending=new Map(),queries={profesores:'',grupos:''};
  let serial=0,kind='',host=null,libPromise=null,academic={groups:[],period:null}; window.addEventListener('din-data',e=>{academic=e.detail;});
- function rpc(action,type,version=''){
+ function request(action,type,version=''){
   return new Promise((resolve,reject)=>{
    let url;try{url=new URL(window.DIN_CONFIG.endpoint);if(url.protocol!=='https:'||url.hostname!=='script.google.com'||!/^\/macros\/s\/[\w-]+\/exec$/.test(url.pathname))throw Error();}catch{reject(Error('Los horarios todavía no están conectados. La administración debe configurar el servicio de Drive.'));return;}
    const cb='dinRemote_'+Date.now()+'_'+Math.random().toString(36).slice(2),script=document.createElement('script');let done=false;
-   const timer=setTimeout(()=>end(Error('El servicio de horarios no respondió. Revisa la conexión e intenta de nuevo.')),45000);
+   function connectionError(message){const error=Error(message);error.retryable=true;return error;}
+   const timer=setTimeout(()=>end(connectionError('El servicio de horarios tardó demasiado. Pulsa Reintentar.')),45000);
    function end(error,value){if(done)return;done=true;clearTimeout(timer);script.remove();window[cb]=()=>{};setTimeout(()=>delete window[cb],60000);error?reject(error):resolve(value);}
    window[cb]=r=>r?.ok?end(null,r):end(Error(r?.error||'No se pudo leer el horario remoto.'));
-   script.onerror=()=>end(Error('No se pudo conectar con Drive. Intenta de nuevo o informa a la coordinación.'));
+   script.onerror=()=>end(connectionError('No se pudo conectar con el servicio de horarios después de varios intentos. Pulsa Reintentar. Si persiste, prueba con Wi-Fi o datos móviles.'));
    Object.entries({action,kind:type,version,callback:cb,_:Date.now()}).forEach(([k,v])=>url.searchParams.set(k,v));script.src=url.href;document.head.appendChild(script);
   });
+ }
+ function rpc(action,type,version=''){
+  const key=JSON.stringify([action,type,version]);
+  if(pending.has(key))return pending.get(key);
+  const task=(async()=>{for(let attempt=0;;attempt++){try{return await request(action,type,version);}catch(error){if(!error.retryable||attempt>=2)throw error;await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}}})();
+  pending.set(key,task);task.then(()=>pending.delete(key),()=>pending.delete(key));return task;
  }
  async function library(){
   if(!libPromise)libPromise=import('./vendor/pdfjs/pdf.mjs').then(lib=>{lib.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdfjs/pdf.worker.mjs',document.baseURI).href;return lib;}).catch(e=>{libPromise=null;throw Error('No se pudo cargar el visor. Actualiza la página o utiliza un navegador actualizado.');});return libPromise;
@@ -60,7 +67,8 @@ window.DIN_SCHEDULE=(()=>{
    const mountedHost=host;
    queue=queue.catch(()=>{}).then(async()=>{if(host!==mountedHost||kind!==type)return;try{await documentFor(type,s=>{if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=s;});if(host===mountedHost&&kind===type){suggest(type);host.querySelector('#scheduleStatus').textContent='Selecciona un profesor o escribe parte de su nombre.';}}catch(e){if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=e.message;}});
   }
-  rpc('meta',type).then(meta=>{if(token===serial)host.querySelector('#scheduleStatus').textContent='Disponible · Periodo '+meta.period+' · Actualizado en Drive: '+new Date(meta.modified).toLocaleString('es-MX');}).catch(e=>{if(token===serial)host.querySelector('#scheduleStatus').textContent=e.message;});
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.className='schedule-choice';retry.onclick=()=>{const query=host.querySelector('#scheduleQuery').value;if(query.trim())search(type,query);else mount(type,element);};host.querySelector('#scheduleStatus').after(retry);
+  if(type!=='profesores')rpc('meta',type).then(meta=>{if(token===serial)host.querySelector('#scheduleStatus').textContent='Disponible · Periodo '+meta.period+' · Actualizado en Drive: '+new Date(meta.modified).toLocaleString('es-MX');}).catch(e=>{if(token===serial)host.querySelector('#scheduleStatus').textContent=e.message;});
  }
  function suggest(type){
   const input=host.querySelector('#scheduleQuery'),q=norm(input.value),entry=cache.get(type),selected=document.getElementById('period')?.value;
