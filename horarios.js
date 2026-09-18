@@ -2,7 +2,7 @@
 window.DIN_SCHEDULE=(()=>{
  'use strict';
  const {norm,esc}=DIN,cache=new Map(),queries={profesores:'',grupos:''};
- let serial=0,kind='',host=null,libPromise=null;
+ let serial=0,kind='',host=null,libPromise=null,academic={groups:[],period:null}; window.addEventListener('din-data',e=>{academic=e.detail;});
  function rpc(action,type,version=''){
   return new Promise((resolve,reject)=>{
    let url;try{url=new URL(window.DIN_CONFIG.endpoint);if(url.protocol!=='https:'||url.hostname!=='script.google.com'||!/^\/macros\/s\/[\w-]+\/exec$/.test(url.pathname))throw Error();}catch{reject(Error('Los horarios todavía no están conectados. La administración debe configurar el servicio de Drive.'));return;}
@@ -52,10 +52,22 @@ window.DIN_SCHEDULE=(()=>{
  }
  function mount(type,element){
   const token=++serial;kind=type;host=element;
-  host.innerHTML=`<div class="schedule-panel"><h3>${type==='profesores'?'Horarios de maestros':'Horarios por grupo'}</h3><form id="scheduleForm"><label for="scheduleQuery">${type==='profesores'?'Nombre del maestro':'Código del grupo'}</label><div class="schedule-search"><input id="scheduleQuery" type="search" required maxlength="120" autocomplete="off" placeholder="${type==='profesores'?'Por ejemplo: Abel Martínez':'Por ejemplo: LIMA002'}" value="${esc(queries[type])}"><button class="primary" type="submit">Buscar horario</button></div></form><p id="scheduleStatus" role="status">Consultando disponibilidad en Drive…</p><div id="scheduleMatches"></div><div id="schedulePage"></div></div>`;
+  host.innerHTML=`<div class="schedule-panel"><h3>${type==='profesores'?'Horarios de maestros':'Horarios por grupo'}</h3><form id="scheduleForm"><label for="scheduleQuery">${type==='profesores'?'Nombre del maestro':'Código del grupo'}</label><div class="schedule-search"><input id="scheduleQuery" type="search" required maxlength="120" autocomplete="off" placeholder="${type==='profesores'?'Por ejemplo: Abel Martínez':'Por ejemplo: LIMA002'}" value="${esc(queries[type])}"><button class="primary" type="submit">Buscar horario</button></div></form><p id="scheduleStatus" role="status">Consultando disponibilidad en Drive…</p><div id="scheduleSuggestions" aria-label="Sugerencias"></div><div id="scheduleMatches"></div><div id="schedulePage"></div></div>`;
   host.querySelector('form').onsubmit=e=>{e.preventDefault();queries[type]=host.querySelector('input').value;search(type,queries[type]);};
-  host.querySelector('input').oninput=()=>{++serial;queries[type]=host.querySelector('input').value;host.querySelector('#scheduleMatches').replaceChildren();host.querySelector('#schedulePage').replaceChildren();host.querySelector('#scheduleStatus').textContent='Pulsa Buscar horario para consultar Drive.';};
+  host.querySelector('input').oninput=()=>{++serial;queries[type]=host.querySelector('input').value;host.querySelector('#scheduleMatches').replaceChildren();host.querySelector('#schedulePage').replaceChildren();suggest(type);};
+  suggest(type);
+  if(type==='profesores'){
+   const mountedHost=host;
+   queue=queue.catch(()=>{}).then(async()=>{if(host!==mountedHost||kind!==type)return;try{await documentFor(type,s=>{if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=s;});if(host===mountedHost&&kind===type){suggest(type);host.querySelector('#scheduleStatus').textContent='Selecciona un profesor o escribe parte de su nombre.';}}catch(e){if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=e.message;}});
+  }
   rpc('meta',type).then(meta=>{if(token===serial)host.querySelector('#scheduleStatus').textContent='Disponible · Periodo '+meta.period+' · Actualizado en Drive: '+new Date(meta.modified).toLocaleString('es-MX');}).catch(e=>{if(token===serial)host.querySelector('#scheduleStatus').textContent=e.message;});
+ }
+ function suggest(type){
+  const input=host.querySelector('#scheduleQuery'),q=norm(input.value),entry=cache.get(type),selected=document.getElementById('period')?.value;
+  const names=type==='grupos'?academic.groups.map(g=>g.grupo):(entry&&(!selected||entry.period===selected)?entry.pages.map(p=>p.name):[]);
+  const unique=[...new Set(names)].filter(n=>q.split(' ').every(t=>norm(n).includes(t))).sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
+  const container=host.querySelector('#scheduleSuggestions');container.className='schedule-suggestions';container.replaceChildren();
+  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=name;b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
  }
  // Una sola extracción a la vez; consultas anteriores nunca sustituyen la vista vigente.
  let queue=Promise.resolve();
@@ -83,7 +95,7 @@ window.DIN_SCHEDULE=(()=>{
   for(const match of pages){
    if(token!==serial)return;
    const section=document.createElement('section');section.className='selected-schedule';
-   section.innerHTML=`<h4>${esc(match.name)}</h4><p>Horario correspondiente · Página ${match.page} · Usa los controles para ampliar.</p><div class="schedule-zoom"><button type="button" data-zoom="minus" aria-label="Reducir horario">−</button><button type="button" data-zoom="fit">Ajustar</button><button type="button" data-zoom="plus" aria-label="Ampliar horario">+</button></div><div class="pdf-scroll" tabindex="0" role="region" aria-label="Horario de ${esc(match.name)}"><canvas role="img" aria-label="Horario de ${esc(match.name)}. Transcripción disponible debajo."></canvas></div><details><summary>Texto del horario (orden extraído del documento)</summary><pre>${esc(match.text)}</pre></details>`;
+   section.innerHTML=`<h4>${esc(match.name)}</h4><p>Horario correspondiente · Página ${match.page} · Usa los controles para ampliar.</p><div class="schedule-zoom"><button type="button" data-zoom="minus" aria-label="Reducir horario">−</button><button type="button" data-zoom="fit">Ajustar</button><button type="button" data-zoom="plus" aria-label="Ampliar horario">+</button><button type="button" data-fullscreen>Pantalla completa</button></div><div class="pdf-scroll" tabindex="0" role="region" aria-label="Horario de ${esc(match.name)}"><canvas role="img" aria-label="Horario de ${esc(match.name)}. Transcripción disponible debajo."></canvas></div><details><summary>Texto del horario (orden extraído del documento)</summary><pre>${esc(match.text)}</pre></details>`;
    target.append(section);const page=await entry.pdf.getPage(match.page),canvas=section.querySelector('canvas'),scroller=section.querySelector('.pdf-scroll');let zoom=1,rendering=null;
    async function draw(){
     if(rendering){rendering.cancel();try{await rendering.promise;}catch{}}
@@ -93,9 +105,11 @@ window.DIN_SCHEDULE=(()=>{
     try{await rendering.promise;}catch(e){if(e.name!=='RenderingCancelledException')throw e;}
    }
    section.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{zoom=b.dataset.zoom==='fit'?1:Math.max(1,Math.min(3,zoom+(b.dataset.zoom==='plus'?.5:-.5)));draw().catch(()=>{if(token===serial)host.querySelector('#scheduleStatus').textContent='No se pudo dibujar el horario. Vuelve a buscar.';});});
+   section.querySelector('[data-fullscreen]').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(section.requestFullscreen)await section.requestFullscreen();else section.classList.toggle('schedule-expanded');await draw();}catch{section.classList.toggle('schedule-expanded');await draw();}};
    await draw();
   }
  }
- return {mount,cancel:()=>{++serial;},identify};
+ return {mount,select:(type,name)=>{queries[type]=name;host.querySelector('#scheduleQuery').value=name;search(type,name);},cancel:()=>{++serial;},identify};
 })();
+
 
