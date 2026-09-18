@@ -24,7 +24,7 @@ function refreshModel(id){
  const career=$('career').value;$('career').innerHTML='<option value="">Todas las carreras</option>'+[...new Set(model.groups.map(g=>str(g.ingenieria)).filter(Boolean))].sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');if([...$('career').options].some(o=>o.value===career))$('career').value=career;
  $('status').className='status';
  $('status').textContent=!model.period?'No hay un periodo activo para consultar grupos.':!model.assignments.some(a=>active(a.activo))?'Las asignaciones de aulas de este periodo están pendientes de captura. Puedes consultar grupos, tutores y los planos de los edificios.':'';
- if(sourceIssues.length){$('status').className='status error';$('status').textContent+=' '+sourceIssues.join(' · ');}
+ if(sourceIssues.length){$('status').className='status error';$('status').textContent=sourceIssues.join(' · ');}
  if(model.issues.length){$('status').className='status error';$('status').textContent+=' '+model.issues.join(' · ');}
  window.dispatchEvent(new CustomEvent('din-data',{detail:{groups:model.groups,period:model.period}}));render();if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));
 }

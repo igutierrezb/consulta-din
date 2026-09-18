@@ -30,6 +30,7 @@ Grupos y asignaciones se sustituyen solo para el periodo seleccionado. Aulas y e
 | `index.html`, `estilos.css`, `app.js` | Consulta pública |
 | `datos.js`, `planos.js` | Modelo y geometrías originales |
 | `source.js` | Backend, fuentes independientes y caché |
+| `remote.js` | Consultas públicas JSON sin cookies de Google, con timeout y deduplicación |
 | `horarios.js`, `vendor/pdfjs/` | Extracción y visor PDF |
 | `config.js` | URLs públicas, sin contraseñas |
 | `admin.html` | Entrada al panel protegido |

@@ -3,18 +3,7 @@ window.DIN_SCHEDULE=(()=>{
  'use strict';
  const {norm,esc}=DIN,cache=new Map(),pending=new Map(),queries={profesores:'',grupos:''};
  let serial=0,kind='',host=null,libPromise=null,academic={groups:[],period:null}; window.addEventListener('din-data',e=>{academic=e.detail;});
- function request(action,type,version=''){
-  return new Promise((resolve,reject)=>{
-   let url;try{url=new URL(window.DIN_CONFIG.endpoint);if(url.protocol!=='https:'||url.hostname!=='script.google.com'||!/^\/macros\/s\/[\w-]+\/exec$/.test(url.pathname))throw Error();}catch{reject(Error('Los horarios todavía no están conectados. La administración debe configurar el servicio de Drive.'));return;}
-   const cb='dinRemote_'+Date.now()+'_'+Math.random().toString(36).slice(2),script=document.createElement('script');let done=false;
-   function connectionError(message){const error=Error(message);error.retryable=true;return error;}
-   const timer=setTimeout(()=>end(connectionError('El servicio de horarios tardó demasiado. Pulsa Reintentar.')),45000);
-   function end(error,value){if(done)return;done=true;clearTimeout(timer);script.remove();window[cb]=()=>{};setTimeout(()=>delete window[cb],60000);error?reject(error):resolve(value);}
-   window[cb]=r=>r?.ok?end(null,r):end(Error(r?.error||'No se pudo leer el horario remoto.'));
-   script.onerror=()=>end(connectionError('No se pudo conectar con el servicio de horarios después de varios intentos. Pulsa Reintentar. Si persiste, prueba con Wi-Fi o datos móviles.'));
-   Object.entries({action,kind:type,version,callback:cb,_:Date.now()}).forEach(([k,v])=>url.searchParams.set(k,v));script.src=url.href;document.head.appendChild(script);
-  });
- }
+ function request(action,type,version=''){return window.DIN_REMOTE.request({action,kind:type,version});}
  function rpc(action,type,version=''){
   const key=JSON.stringify([action,type,version]);
   if(pending.has(key))return pending.get(key);

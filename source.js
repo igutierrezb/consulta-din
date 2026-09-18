@@ -1,14 +1,7 @@
 /* Fuentes independientes. La caché nunca convierte ubicaciones antiguas en vigentes. */
 window.DIN_SOURCE=(()=>{
  const config=window.DIN_CONFIG, ttl=24*60*60*1000,basePlans=window.DIN_PLANOS;
- function rpc(params){return new Promise((resolve,reject)=>{
-  const url=new URL(config.endpoint),name='dinRemote_'+Date.now()+'_'+Math.random().toString(36).slice(2),script=document.createElement('script');
-  let done=false;const timer=setTimeout(()=>end(Error('El servicio no respondió.')),12000);
-  function end(error,value){if(done)return;done=true;clearTimeout(timer);script.remove();window[name]=()=>{};setTimeout(()=>delete window[name],60000);error?reject(error):resolve(value);}
-  window[name]=r=>r?.ok?end(null,r):end(Error(r?.error||'Respuesta inválida.'));
-  script.onerror=()=>end(Error('Sin conexión con el servicio.'));
-  Object.entries({...params,callback:name}).forEach(([k,v])=>url.searchParams.set(k,v));script.src=url.href;document.head.append(script);
- });}
+ function rpc(params){return window.DIN_REMOTE.request(params);}
  function key(sheet,rev){return 'din:v2:'+config.sheetId+':'+rev+':'+sheet;}
  function stored(sheet,rev){try{const v=JSON.parse(localStorage.getItem(key(sheet,rev)));return v&&Date.now()-v.at<ttl&&Array.isArray(v.rows)?v:null;}catch{return null;}}
  async function load(sheets,legacy){
