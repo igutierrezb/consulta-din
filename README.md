@@ -56,6 +56,16 @@ En Apps Script, el archivo existente se llama `Catalogo.gs`: actualizarlo con `C
 
 ## Arquitectura
 
+### Aulas y directorio de profesores
+
+En **Asignar aulas**, selecciona grupo, turno, área/edificio, planta y aula. **Revisar cambio** muestra qué grupos se retirarán del destino y cuáles quedarán sin aula. Si hay ocupantes, confirma su retiro. **Guardar cambio en borrador** conserva otros turnos y periodos; luego publica para que se vea en la consulta.
+
+En **Directorio de profesores**, descarga los encabezados CSV y completa una fila por profesor: `nombre`, `categoria`, `correo`, `horario_laboral` (ejemplo: «Lunes a viernes, 7:00–15:00»). También admite Excel y selección de columnas. `nombre_pdf` permite indicar el nombre del horario; `nombre_tutor` identifica el nombre usado en Grupos cuando difiere. La comparación lee el PDF del borrador y permite elegir manualmente las coincidencias pendientes. Los nombres parecidos no se vinculan automáticamente. Guarda el directorio y publica. Si sustituyes el PDF, verifica nuevamente el directorio antes de publicar.
+
+La consulta muestra el horario del grupo dentro de su ficha, incluye **Mapa del campus** y presenta categoría, tutorías, correo y horario laboral junto al horario del profesor. Los datos aún no cargados aparecen como pendientes. Una falla del directorio permite seguir viendo el PDF de clases.
+
+Pruebas adicionales: `node tests/classrooms-directory.cjs` verifica desplazados, concurrencia, turnos/periodos, ubicaciones ambiguas y correspondencia del directorio con la versión del PDF.
+
 Cada cambio administrativo guarda una versión JSON nueva en Drive. Un bloqueo evita escrituras simultáneas y una revisión evita sobrescribir cambios de otra sesión. Publicar cambia un único puntero; la versión anterior queda disponible. Los PDFs se guardan como archivos nuevos privados.
 
 Antes de publicar la primera versión, el backend lee Sheets. Después, el panel administra las versiones; la hoja original se conserva como respaldo. No existe sincronización bidireccional automática con Sheets.

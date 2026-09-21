@@ -53,6 +53,7 @@ function validateState_(s){
   if(((a.grupo||a.id_grupo)&&groups.length!==1)||rooms.length!==1)errors.push('Asignación '+(i+1)+': grupo o aula inexistente/ambiguo.');
  });
  ['profesores','grupos'].forEach(k=>{if(!s.schedules[s.active]?.[k]?.id)errors.push('Falta horario de '+k+' para '+s.active);});
+ if(s.directories?.[s.active]){try{if(s.directories[s.active].pdfVersion!==teacherVersion_(s,s.active).version)errors.push('El PDF de profesores cambió. Abre el directorio, verifica las coincidencias y guárdalo antes de publicar.');}catch(e){errors.push(e.message);}}
  return errors;
 }
 function validatePlan_(p){
@@ -123,6 +124,17 @@ function adminAction(request){
   if(r.action==='read')return {state:s,email,errors:validateState_(s)};
   if(r.revision!==s.revision)throw Error('Otra sesión modificó el borrador. Recarga antes de continuar.');
   if(r.action==='validate')return {errors:validateState_(s)};
+  if(r.action==='teacherPdf'){const p=teacherVersion_(s,s.active);if(p.file.getSize()>CONFIG_DIN.maxBytes)throw Error('El PDF supera el tamaño permitido.');return {period:s.active,version:p.version,base64:Utilities.base64Encode(p.file.getBlob().getBytes())};}
+  if(['previewClassroom','moveClassroom'].includes(r.action)){
+   const change=classroomChange_(s,r);if(r.action==='previewClassroom')return change;
+   if(change.displaced.length&&!r.confirmDisplaced)throw Error('Confirma que revisaste los grupos que dejarán esta aula.');s.data.ASIGNACION_AULAS=change.rows;
+   s.editedBy=email;props_().setProperty('DIN_DRAFT',storeState_(s,'borrador'));return {state:s,email,errors:validateState_(s),pending:change.pending};
+  }
+  if(r.action==='directory'){
+   const current=teacherVersion_(s,s.active);if(r.pdfVersion!==current.version)throw Error('Cambió el PDF de profesores. Vuelve a verificar las coincidencias.');
+   const rows=validateDirectory_(r.rows,r.names);s.directories=s.directories||{};s.directories[s.active]={rows,pdfVersion:current.version};
+   s.editedBy=email;props_().setProperty('DIN_DRAFT',storeState_(s,'borrador'));return {state:s,email,errors:validateState_(s)};
+  }
   if(['previewUnified','importUnified','catalogEntry'].includes(r.action)){
    const result=unifiedImport_(s,r.rows,r.period||s.active,r.action==='catalogEntry');
    if(r.action==='previewUnified')return result;
@@ -172,4 +184,41 @@ function compactCatalog_(table,rows){
  if(!Array.isArray(rows)||rows.length>10000)throw Error('Catálogo inválido.');
  const id=table==='EDIFICIOS'?'id_edificio':'id_aula',seen=new Map();
  rows.forEach((r,i)=>{const old=seen.get(r[id]);if(!old){seen.set(r[id],{row:{...r},line:i+2});return;}Object.entries(r).forEach(([k,v])=>{if(String(v??'').trim()&&String(old.row[k]??'').trim()&&normalizar_(v)!==normalizar_(old.row[k]))throw Error('Filas '+old.line+' y '+(i+2)+': '+r[id]+' tiene valores distintos en '+k+'. Corrige esas celdas en la vista previa.');if(String(v??'').trim())old.row[k]=v;});});return [...seen.values()].map(x=>x.row);
+}
+
+/** Cambia un aula solo en el periodo y turno elegidos; siempre previsualiza los desplazados. */
+function classroomChange_(s,r){
+ const on=v=>['true','verdadero','1','si'].includes(normalizar_(v)),same=(a,b)=>normalizar_(a)===normalizar_(b);
+ const groups=s.data.GRUPOS.filter(g=>g.periodo===s.active&&(!Object.hasOwn(g,'activo')||on(g.activo)));
+ const group=groups.find(g=>g.id_grupo===r.groupId),room=s.data.AULAS.find(a=>a.id_aula===r.roomId&&on(a.activo));
+ if(!group||!room||!String(r.turn||'').trim())throw Error('Selecciona un grupo, un aula activa y el turno.');
+ const building=s.data.EDIFICIOS.find(b=>on(b.activo)&&[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,room.edificio)));
+ if(!building)throw Error('El aula no pertenece a un edificio activo.');
+ const groupFor=a=>groups.find(g=>a.id_grupo?g.id_grupo===a.id_grupo:a.grupo&&same(g.grupo,a.grupo));
+ const inScope=a=>a.periodo===s.active&&on(a.activo)&&same(a.turno,r.turn);
+ const isTarget=a=>{
+  if(a.id_aula)return a.id_aula===room.id_aula;
+  const matches=s.data.AULAS.filter(candidate=>on(candidate.activo)&&a.salon&&same(a.salon,candidate.nombre)&&(!a.planta||same(String(a.planta).replace(/^planta /i,''),String(candidate.planta).replace(/^planta /i,'')))&&(!a.edificio||s.data.EDIFICIOS.some(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,a.edificio))&&[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,candidate.edificio)))));
+  if(matches.some(x=>x.id_aula===room.id_aula)&&matches.length!==1)throw Error('Una asignación anterior no identifica claramente el edificio y la planta. Corrígela en Excel y datos antes de mover este grupo.');
+  return matches.length===1&&matches[0].id_aula===room.id_aula;
+ };
+ const removed=s.data.ASIGNACION_AULAS.filter(a=>inScope(a)&&(groupFor(a)?.id_grupo===group.id_grupo||isTarget(a)));
+ const displaced=[...new Map(removed.map(groupFor).filter(g=>g&&g.id_grupo!==group.id_grupo).map(g=>[g.id_grupo,g])).values()];
+ const rows=s.data.ASIGNACION_AULAS.filter(a=>!removed.includes(a)).concat([{periodo:s.active,id_grupo:group.id_grupo,id_aula:room.id_aula,turno:String(r.turn).trim(),activo:'TRUE'}]);
+ const pending=groups.filter(g=>!rows.some(a=>a.periodo===s.active&&on(a.activo)&&groupFor(a)?.id_grupo===g.id_grupo));
+ return {rows,group:group.grupo,room:(building.nombre+' · '+room.planta+' · '+(room.nombre||room.id_aula)),displaced:displaced.map(g=>({id:g.id_grupo,name:g.grupo})),pending:pending.map(g=>g.grupo)};
+}
+function teacherVersion_(s,period){
+ const id=s.schedules[period]?.profesores?.id;if(!id)throw Error('Primero carga el PDF de horarios de profesores de este periodo.');
+ const file=DriveApp.getFileById(id);return {file,version:id+':'+file.getLastUpdated().toISOString()+':'+file.getSize()+':'+period};
+}
+function validateDirectory_(rows,names){
+ if(!Array.isArray(rows)||!rows.length||rows.length>1000||!Array.isArray(names)||!names.length||names.length>300)throw Error('Directorio o índice de profesores inválido.');
+ const available=new Set(names.map(normalizar_)),seen=new Set(),fields=['nombre','nombre_pdf','nombre_tutor','categoria','correo','horario_laboral'];
+ return rows.map((r,i)=>{const out={};fields.forEach(k=>{const v=r[k]??'';if(typeof v!=='string'||v.length>4000)throw Error('Fila '+(i+2)+': dato inválido en '+k);out[k]=v.trim();});
+  if(!out.nombre)throw Error('Fila '+(i+2)+': falta el nombre del profesor.');
+  const key=normalizar_(out.nombre_pdf);if(!available.has(key))throw Error('Fila '+(i+2)+': selecciona el nombre que aparece en el PDF de profesores.');
+  if(seen.has(key))throw Error('Fila '+(i+2)+': el profesor del PDF ya está vinculado a otra fila.');seen.add(key);
+  if(out.correo&&!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(out.correo))throw Error('Fila '+(i+2)+': correo inválido.');return out;
+ });
 }

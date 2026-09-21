@@ -46,12 +46,12 @@ window.DIN_SCHEDULE=(()=>{
    const entry={version:meta.version,modified:meta.modified,period:meta.period,pdf,pages};cache.set(type,entry);return entry;
   }catch(e){await pdf.loadingTask.destroy();throw e;}
  }
- function mount(type,element){
+ function mount(type,element,options={}){
   const token=++serial;kind=type;host=element;
   host.innerHTML=`<div class="schedule-panel"><h3>${type==='profesores'?'Horarios de maestros':'Horarios por grupo'}</h3><form id="scheduleForm"><label for="scheduleQuery">${type==='profesores'?'Nombre del maestro':'Código del grupo'}</label><div class="schedule-search"><input id="scheduleQuery" type="search" required maxlength="120" autocomplete="off" placeholder="${type==='profesores'?'Por ejemplo: Abel Martínez':'Por ejemplo: LIMA002'}" value="${esc(queries[type])}"><button class="primary" type="submit">Buscar horario</button></div></form><p id="scheduleStatus" role="status">Consultando disponibilidad en Drive…</p><div id="scheduleSuggestions" aria-label="Sugerencias"></div><div id="scheduleMatches"></div><div id="schedulePage"></div></div>`;
   host.querySelector('form').onsubmit=e=>{e.preventDefault();queries[type]=host.querySelector('input').value;search(type,queries[type]);};
   host.querySelector('input').oninput=()=>{++serial;queries[type]=host.querySelector('input').value;host.querySelector('#scheduleMatches').replaceChildren();host.querySelector('#schedulePage').replaceChildren();suggest(type);};
-  suggest(type);
+  suggest(type);if(options.inline){host.querySelector('form').hidden=true;host.querySelector('#scheduleSuggestions').hidden=true;}
   if(type==='profesores'){
    const mountedHost=host;
    queue=queue.catch(()=>{}).then(async()=>{if(host!==mountedHost||kind!==type)return;try{await documentFor(type,s=>{if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=s;});if(host===mountedHost&&kind===type){suggest(type);host.querySelector('#scheduleStatus').textContent='Selecciona un profesor o escribe parte de su nombre.';}}catch(e){if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=e.message;}});
@@ -89,6 +89,7 @@ window.DIN_SCHEDULE=(()=>{
  }
  async function show(entry,pages,token){
   const target=host.querySelector('#schedulePage');target.replaceChildren();
+  if(kind==='profesores'){const profile=document.createElement('div');target.append(profile);teacherProfile(entry,pages[0].name,profile,token);}
   for(const match of pages){
    if(token!==serial)return;
    const section=document.createElement('section');section.className='selected-schedule';
@@ -106,6 +107,16 @@ window.DIN_SCHEDULE=(()=>{
    await draw();
   }
  }
+ async function teacherProfile(entry,name,target,token){
+  target.className='teacher-profile';target.textContent='Consultando directorio del profesor…';
+  let record=null,warning='';
+  try{const d=await window.DIN_REMOTE.request({action:'directory'});if(token!==serial)return;if(d.period===entry.period&&d.pdfVersion===entry.version){const matches=d.rows.filter(r=>norm(r.nombre_pdf)===norm(name));if(matches.length===1)record=matches[0];warning=d.warning||'';}else warning='El directorio no corresponde al PDF vigente.';}catch{warning='No se pudo consultar el directorio. El horario de clases se muestra por separado.';}
+  if(token!==serial)return;
+  const aliases=[name,record?.nombre,record?.nombre_tutor].filter(Boolean).map(norm),groups=academic.period?.id_periodo===entry.period?academic.groups.filter(g=>aliases.includes(norm(g.tutor))):[];
+  const email=record?.correo||groups.map(g=>g.correo).find(v=>/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(v||''));
+  target.innerHTML=`<h4>${esc(record?.nombre||name)}</h4><p><strong>Categoría:</strong> ${esc(record?.categoria||'Pendiente de captura')}</p>${groups.length?`<p class="tutor-badge">Tutor de ${groups.map(g=>esc(g.grupo)).join(', ')}</p>`:''}<p><strong>Correo:</strong> ${email?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'Pendiente de captura'}</p><p><strong>Horario laboral:</strong><br>${esc(record?.horario_laboral||'Pendiente de captura en el directorio')}</p>${warning?`<p role="status">${esc(warning)}</p>`:''}<h4>Horario de clases</h4>`;
+ }
+
  return {mount,select:(type,name)=>{queries[type]=name;host.querySelector('#scheduleQuery').value=name;search(type,name);},cancel:()=>{++serial;},identify};
 })();
 

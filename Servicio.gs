@@ -9,6 +9,11 @@ function doGet(e) {
  if(callback&&!/^dinRemote_[A-Za-z0-9_]{1,100}$/.test(callback))return ContentService.createTextOutput('{"ok":false,"error":"Callback inválido"}').setMimeType(ContentService.MimeType.JSON);
  let result;
  try {
+  if(p.action==='directory'){
+   const s=release_();if(!s)return directoryResponse_({ok:true,rows:[],period:null});
+   const d=s.directories?.[s.active];const current=teacherVersion_(s,s.active);
+   return directoryResponse_({ok:true,period:s.active,pdfVersion:current.version,rows:d?.pdfVersion===current.version?d.rows:[],warning:d&&d.pdfVersion!==current.version?'Directorio pendiente de verificar con el PDF vigente.':''});
+  }
   if(['manifest','data','plans'].includes(p.action))return publicAcademic_(p,callback);
   if(!['meta','pdf'].includes(p.action)||!['profesores','grupos'].includes(p.kind))throw Error('Consulta no permitida.');
   const release=release_();
@@ -61,3 +66,5 @@ function probarAcceso() {
   console.log(kind+': '+file.getName()+' · '+file.getSize()+' bytes · '+file.getLastUpdated());
  });
 }
+
+function directoryResponse_(value){return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);}
