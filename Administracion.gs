@@ -11,8 +11,7 @@ function prepararAdministracion(){
 }
 function adminIdentity_(){
  const email=Session.getActiveUser().getEmail().toLowerCase();
- const allowed=(PropertiesService.getScriptProperties().getProperty('DIN_ADMINS')||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
- if(!email||!allowed.includes(email))throw Error('Acceso denegado. Entra con una cuenta autorizada en el despliegue administrativo.');return email;
+ if(email!=='ivan.gutierrez@uteq.edu.mx')throw Error('Acceso denegado. La administración es exclusiva de ivan.gutierrez@uteq.edu.mx.');return email;
 }
 function jsonFile_(id){return JSON.parse(DriveApp.getFileById(id).getBlob().getDataAsString());}
 function props_(){return PropertiesService.getScriptProperties();}
@@ -62,6 +61,61 @@ function validatePlan_(p){
  if(p.background&&!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(p.background))throw Error('Imagen de croquis inválida.');
  if(JSON.stringify(p).length>3000000)throw Error('Reduce el croquis a menos de 2 MB.');
 }
+/** Una fila por grupo/asignación. Los catálogos se combinan sin borrar planos ni aulas existentes. */
+function unifiedImport_(state,rows,period,catalogOnly){
+ if(!Array.isArray(rows)||!rows.length||rows.length>10000)throw Error('Carga entre 1 y 10 000 filas.');
+ if(!state.data.PERIODOS.some(p=>p.id_periodo===period))throw Error('Primero crea o selecciona el periodo.');
+ const data=JSON.parse(JSON.stringify(state.data)),errors=[],seen={EDIFICIOS:new Map(),AULAS:new Map(),GRUPOS:new Map()},assignments=new Map();
+ const text=v=>String(v??'').trim(),key=v=>normalizar_(v),floor=v=>text(v).replace(/^planta\s+/i,'').toUpperCase();
+ const slug=v=>key(v).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').toUpperCase();
+ function find(table,id,match,line){const a=data[table].filter(r=>id?key(r[{EDIFICIOS:'id_edificio',AULAS:'id_aula',GRUPOS:'id_grupo'}[table]])===key(id)&& (table!=='GRUPOS'||r.periodo===period):match(r));if(a.length>1)throw Error('Fila '+line+': hay varias coincidencias en '+table+'. Indica su código interno.');return a[0];}
+ function put(table,record,id,line){
+  const prior=seen[table].get(record[id]);
+  if(prior){for(const k of Object.keys(record)){if(text(record[k])&&text(prior.record[k])&&key(record[k])!==key(prior.record[k]))errors.push('Filas '+prior.line+' y '+line+': '+record[id]+' tiene valores distintos en '+k+'. Corrige la vista previa.');else if(text(record[k]))prior.record[k]=record[k];}return prior.record;}
+  seen[table].set(record[id],{record,line});return record;
+ }
+ rows.forEach((input,i)=>{const line=i+2;try{
+  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Fila '+line+': registro inválido.');
+  const r={};for(const [k,v] of Object.entries(input)){if(typeof v==='object'||text(v).length>4000)throw Error('Fila '+line+': valor inválido en '+k);r[k]=text(v);}
+  if(r.periodo&&r.periodo!==period)throw Error('Fila '+line+': el periodo debe ser '+period+'.');
+  if(!r.grupo&&!r.edificio&&!r.id_edificio)throw Error('Fila '+line+': escribe un grupo o un edificio.');
+  let b,room,g;
+  if(r.edificio||r.id_edificio){
+   const old=find('EDIFICIOS',r.id_edificio,b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&key(v)===key(r.edificio)),line);
+   const id=old?.id_edificio||r.id_edificio||'ED-'+slug(r.edificio);
+   if(!old&&!r.edificio)throw Error('Fila '+line+': falta el nombre del edificio.');
+   const buildingName=old&&[old.id_edificio,old.nombre_completo].some(v=>v&&key(v)===key(r.edificio))?old.nombre:r.edificio||old.nombre;
+   b=put('EDIFICIOS',{id_edificio:id,nombre:buildingName,...(r.nombre_edificio_completo?{nombre_completo:r.nombre_edificio_completo}:{}),activo:'TRUE'},'id_edificio',line);
+   if(r.aula||r.id_aula){
+    if(!r.planta)throw Error('Fila '+line+': indica la planta del aula (BAJA, ALTA, NIVEL 2…).');
+    const oldRoom=find('AULAS',r.id_aula,a=>[old?.id_edificio,old?.nombre,old?.nombre_completo,b.id_edificio,b.nombre].filter(Boolean).some(v=>key(v)===key(a.edificio))&&floor(a.planta)===floor(r.planta)&&key(a.nombre||a.id_aula)===key(r.aula),line);
+    if(oldRoom&&(![old?.id_edificio,old?.nombre,old?.nombre_completo,b.id_edificio,b.nombre].filter(Boolean).some(v=>key(v)===key(oldRoom.edificio))||floor(oldRoom.planta)!==floor(r.planta)))throw Error('Fila '+line+': el código de aula pertenece a otro edificio o planta. Usa otro código para el aula nueva.');
+    if(!oldRoom&&!r.aula)throw Error('Fila '+line+': falta el nombre del aula.');
+    room={id_aula:oldRoom?.id_aula||r.id_aula||b.id_edificio+'-'+slug(r.planta)+'-'+slug(r.aula),nombre:r.aula||oldRoom.nombre,edificio:oldRoom?.edificio||b.id_edificio,planta:floor(r.planta),activo:'TRUE'};
+    ['capacidad','observaciones'].forEach(k=>{if(r[k])room[k]=r[k];});if(r.tipo_aula)room.tipo=r.tipo_aula;
+    if(r.capacidad&&(!/^\d+$/.test(r.capacidad)||Number(r.capacidad)<1))throw Error('Fila '+line+': capacidad debe ser un número entero de personas mayor que cero.');
+    room=put('AULAS',room,'id_aula',line);
+   }
+  }else if(r.aula||r.id_aula||r.planta)throw Error('Fila '+line+': indica el edificio de esa aula o planta.');
+  if(r.grupo&&!catalogOnly){
+   const old=find('GRUPOS',r.id_grupo,g=>g.periodo===period&&key(g.grupo)===key(r.grupo),line);
+   g={id_grupo:old?.id_grupo||r.id_grupo||period+'-'+slug(r.grupo),grupo:r.grupo,periodo:period,tutor:r.tutor||'',activo:'TRUE'};
+   ['correo','ingenieria','cuatrimestre','generacion','salida_lateral'].forEach(k=>{if(r[k])g[k]=r[k];});
+   g=put('GRUPOS',g,'id_grupo',line);
+   if(room){if(!r.turno)throw Error('Fila '+line+': indica el turno de la asignación (Matutino o Vespertino).');const a={periodo:period,id_grupo:g.id_grupo,id_aula:room.id_aula,turno:r.turno,activo:'TRUE'};assignments.set([a.id_grupo,a.id_aula,key(a.turno)].join('|'),a);}
+  }
+ }catch(e){errors.push(e.message);}});
+ for(const table of ['EDIFICIOS','AULAS']){const id=table==='EDIFICIOS'?'id_edificio':'id_aula';for(const {record} of seen[table].values()){const old=data[table].find(r=>r[id]===record[id]);if(old)Object.assign(old,record);else data[table].push(record);}}
+ const groups=[...seen.GRUPOS.values()].map(v=>v.record);
+ if(!catalogOnly){
+  if(!groups.length)errors.push('La hoja no contiene grupos. Para agregar solo edificios o aulas utiliza los formularios de Catálogo.');
+  data.GRUPOS=data.GRUPOS.filter(r=>r.periodo!==period).concat(groups);
+  data.ASIGNACION_AULAS=data.ASIGNACION_AULAS.filter(r=>r.periodo!==period).concat([...assignments.values()]);
+ }
+ for(const t of ['EDIFICIOS','AULAS','GRUPOS','ASIGNACION_AULAS'])errors.push(...validateRows_(t,data[t]));
+ const names=new Set();data.GRUPOS.filter(g=>g.periodo===period).forEach(g=>{if(names.has(key(g.grupo)))errors.push('Grupo repetido con códigos internos distintos: '+g.grupo);names.add(key(g.grupo));});
+ return {data,errors,counts:{grupos:groups.length,edificios:seen.EDIFICIOS.size,aulas:seen.AULAS.size,asignaciones:assignments.size},pending:groups.filter(g=>![...assignments.values()].some(a=>a.id_grupo===g.id_grupo)).length};
+}
 function adminAction(request){
  const email=adminIdentity_(),r=request||{},lock=LockService.getScriptLock();lock.waitLock(30000);
  try{
@@ -69,13 +123,19 @@ function adminAction(request){
   if(r.action==='read')return {state:s,email,errors:validateState_(s)};
   if(r.revision!==s.revision)throw Error('Otra sesión modificó el borrador. Recarga antes de continuar.');
   if(r.action==='validate')return {errors:validateState_(s)};
-  if(r.action==='import'){
+  if(['previewUnified','importUnified','catalogEntry'].includes(r.action)){
+   const result=unifiedImport_(s,r.rows,r.period||s.active,r.action==='catalogEntry');
+   if(r.action==='previewUnified')return result;
+   if(result.errors.length)throw Error(result.errors.slice(0,20).join('\n'));
+   s.data=result.data;
+  }else if(r.action==='import'){
+   if(['EDIFICIOS','AULAS'].includes(r.table))r.rows=compactCatalog_(r.table,r.rows);
    const errors=validateRows_(r.table,r.rows);if(errors.length)throw Error(errors.slice(0,15).join('\n'));
    // Replace only the selected period for period-scoped tables.
    if(['GRUPOS','ASIGNACION_AULAS'].includes(r.table)){
     if(!s.data.PERIODOS.some(p=>p.id_periodo===r.period)||r.rows.some(row=>row.periodo!==r.period))throw Error('Todas las filas deben corresponder al periodo seleccionado.');
     s.data[r.table]=s.data[r.table].filter(row=>row.periodo!==r.period).concat(r.rows);
-   }else s.data[r.table]=r.rows;
+   }else if(r.merge){const id=r.table==='EDIFICIOS'?'id_edificio':'id_aula';r.rows.forEach(row=>{const old=s.data[r.table].find(x=>x[id]===row[id]);if(old)Object.assign(old,row);else s.data[r.table].push(row);});}else s.data[r.table]=r.rows;
   }else if(r.action==='period'){
    if(!/^[A-Za-z0-9_-]{1,40}$/.test(r.id)||!String(r.name||'').trim())throw Error('Completa código y nombre del periodo.');
    const p=s.data.PERIODOS.find(p=>p.id_periodo===r.id);if(p)p.nombre=r.name;else s.data.PERIODOS.push({id_periodo:r.id,nombre:r.name,activo:'FALSE'});s.active=r.id;
@@ -107,4 +167,9 @@ function adminAction(request){
   }else throw Error('Operación no permitida.');
   s.editedBy=email;props_().setProperty('DIN_DRAFT',storeState_(s,'borrador'));return {state:s,email,errors:validateState_(s)};
  }finally{lock.releaseLock();}
+}
+function compactCatalog_(table,rows){
+ if(!Array.isArray(rows)||rows.length>10000)throw Error('Catálogo inválido.');
+ const id=table==='EDIFICIOS'?'id_edificio':'id_aula',seen=new Map();
+ rows.forEach((r,i)=>{const old=seen.get(r[id]);if(!old){seen.set(r[id],{row:{...r},line:i+2});return;}Object.entries(r).forEach(([k,v])=>{if(String(v??'').trim()&&String(old.row[k]??'').trim()&&normalizar_(v)!==normalizar_(old.row[k]))throw Error('Filas '+old.line+' y '+(i+2)+': '+r[id]+' tiene valores distintos en '+k+'. Corrige esas celdas en la vista previa.');if(String(v??'').trim())old.row[k]=v;});});return [...seen.values()].map(x=>x.row);
 }

@@ -4,15 +4,17 @@ Versión ampliada del repositorio existente `igutierrezb/consulta-din`. Conserva
 
 ## Operación cuatrimestral
 
-1. Entra a Administración con tu cuenta institucional.
+1. Entra a Administración exclusivamente con `ivan.gutierrez@uteq.edu.mx`.
 2. Crea o selecciona el periodo del borrador.
-3. Carga Excel o CSV, selecciona hoja y fila de encabezados, mapea columnas y revisa la vista previa. Confirma la importación al borrador.
+3. Descarga `Plantilla-DIN.xlsx` desde el panel. Tiene una sola hoja, encabezados en fila 1 y comentarios con instrucciones. Captura desde fila 2: una fila por grupo y aula asignada. Selecciona «Hoja única», carga el archivo, revisa las columnas y la vista previa, comprueba el resumen y confirma al borrador.
 4. Revisa grupos/tutores, edificios, aulas y asignaciones; también puedes editar registros en la tabla.
 5. Carga los PDFs completos de grupos y profesores. Se verifican todos los encabezados antes de guardarlos.
 6. Actualiza croquis desde PNG/JPEG o una página PDF. Selecciona cada aula y delimita su zona con dos clics o coordenadas. La identificación requiere revisión humana.
 7. Valida y publica. Los datos, periodo, PDFs y croquis se activan juntos. Puedes restaurar la publicación anterior.
 
-Grupos y asignaciones se sustituyen solo para el periodo seleccionado. Aulas y edificios se importan como catálogos completos. Los IDs deben ser texto para conservar ceros iniciales. Se importan valores, sin ejecutar fórmulas ni macros.
+Grupos y asignaciones se sustituyen solo para el periodo seleccionado. La importación combina aulas y edificios con el catálogo existente y conserva las posiciones de los croquis. Las repeticiones iguales se agrupan; los datos contradictorios muestran las filas a corregir en la vista previa. Las columnas no seleccionadas se ignoran, aunque tengan signos o encabezados repetidos. Los códigos internos son opcionales en la hoja única: se reconocen o generan. Los IDs deben ser texto para conservar ceros iniciales. Se importan valores, sin ejecutar fórmulas ni macros.
+
+Aula y salón significan lo mismo. «Tutor» es una persona; «Edificio» es el nombre del edificio; «Aula» es su número o nombre; «Planta» admite BAJA, ALTA, NIVEL 2 u otro nombre. Capacidad y tipo de aula son opcionales. La posición se marca en Croquis. El apartado Catálogo permite agregar edificios y aulas sin Excel. Para una nueva planta usa «Nuevo plano / nueva planta», elige el edificio y escribe la planta. Los PDF y las imágenes se cargan por separado.
 
 ## Consulta pública
 
@@ -48,7 +50,7 @@ En Apps Script, el archivo existente se llama `Catalogo.gs`: actualizarlo con `C
 2. Actualizar `Config.gs`, `Servicio.gs`, `Catalogo.gs`; añadir `Administracion.gs` y el HTML `AdminPanel`.
 3. Ejecutar `prepararAdministracion` como `ivan.gutierrez@uteq.edu.mx`. Configura `DIN_ADMINS` y crea una carpeta privada, registrada como `DIN_FOLDER`.
 4. Mantener el despliegue público como propietario y actualizar su versión conservando su URL.
-5. Crear un despliegue administrativo separado como **usuario que accede**, con acceso **Solo yo** para el administrador. La lista `DIN_ADMINS` se comprueba en cada operación. Guardar su URL en `config.js` como `adminUrl` una sola vez.
+5. Crear un despliegue administrativo separado como **usuario que accede**, con acceso **Solo yo** para el administrador. Cada operación verifica exactamente `ivan.gutierrez@uteq.edu.mx`; la propiedad histórica `DIN_ADMINS` no autoriza cuentas adicionales. Guardar su URL en `config.js` como `adminUrl` una sola vez.
 6. Probar el rechazo de usuarios anónimos/no autorizados, ambos PDFs, grupos y ubicaciones. Publicar el borrador inicial solo después de revisarlo.
 7. Actualizar los archivos del repositorio conservando `vendor/`, planos, CSV y configuración de GitHub Pages. No subir respaldos privados ni credenciales.
 
