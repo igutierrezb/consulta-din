@@ -214,11 +214,18 @@ function teacherVersion_(s,period){
 }
 function validateDirectory_(rows,names){
  if(!Array.isArray(rows)||!rows.length||rows.length>1000||!Array.isArray(names)||!names.length||names.length>300)throw Error('Directorio o índice de profesores inválido.');
- const available=new Set(names.map(normalizar_)),seen=new Set(),fields=['nombre','nombre_pdf','nombre_tutor','categoria','correo','horario_laboral'];
+ const available=new Set(names.map(normalizar_)),seen=new Set(),fields=['nombre','nombre_pdf','nombre_tutor','categoria','correo','horario_laboral',...Array.from({length:5},(_,i)=>['ent'+(i+1),'sal'+(i+1)]).flat()];
  return rows.map((r,i)=>{const out={};fields.forEach(k=>{const v=r[k]??'';if(typeof v!=='string'||v.length>4000)throw Error('Fila '+(i+2)+': dato inválido en '+k);out[k]=v.trim();});
   if(!out.nombre)throw Error('Fila '+(i+2)+': falta el nombre del profesor.');
+  for(let day=1;day<=5;day++){try{const a=dinWorkTime_(out['ent'+day]),b=dinWorkTime_(out['sal'+day]);if(!!a!==!!b)throw Error('Completa entrada y salida del mismo día.');if(a&&b<=a)throw Error('La salida debe ser posterior a la entrada.');out['ent'+day]=a;out['sal'+day]=b;}catch(e){throw Error('Fila '+(i+2)+', '+['lunes','martes','miércoles','jueves','viernes'][day-1]+': '+e.message);}}
   const key=normalizar_(out.nombre_pdf);if(!available.has(key))throw Error('Fila '+(i+2)+': selecciona el nombre que aparece en el PDF de profesores.');
   if(seen.has(key))throw Error('Fila '+(i+2)+': el profesor del PDF ya está vinculado a otra fila.');seen.add(key);
   if(out.correo&&!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(out.correo))throw Error('Fila '+(i+2)+': correo inválido.');return out;
  });
+}
+
+function dinWorkTime_(value){
+ const v=String(value??'').trim();if(!v)return '';
+ if(/^0?\.\d+$/.test(v)){const minutes=Math.round(Number(v)*1440);if(minutes>=0&&minutes<1440)return String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');}
+ const m=v.toLowerCase().replace(/[.\s]/g,'').match(/^(\d{1,2}):(\d{2})(?::00)?(am|pm)?$/);if(!m)throw Error('Usa horas como 07:00 o 15:00.');let h=Number(m[1]),min=Number(m[2]);if(min>59||h>23||(m[3]&&(h<1||h>12)))throw Error('Hora fuera de rango.');if(m[3])h=h%12+(m[3]==='pm'?12:0);return String(h).padStart(2,'0')+':'+m[2];
 }

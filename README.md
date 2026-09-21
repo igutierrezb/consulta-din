@@ -81,3 +81,11 @@ Los borradores y publicaciones se conservan en Drive. No borrar los archivos ind
 Para revertir datos, usar Restaurar publicación anterior. Para revertir código, seleccionar la versión anterior del despliegue Apps Script y/o del repositorio.
 
 Referencias: [Apps Script](https://developers.google.com/apps-script/guides/web), [identidad de sesión](https://developers.google.com/apps-script/reference/base/session), [SheetJS](https://docs.sheetjs.com/docs/getting-started/installation/standalone/).
+
+### Mapa del campus y horario laboral diario
+
+El acceso al mapa aparece junto a «Un lugar para aprender». La imagen oficial se conserva en `campus-uteq.jpg`; `campus.js` añade áreas accesibles por ratón, teclado y botones para NANO/H1, H, I, F, G, CIC 4.0, PIDET y laboratorios D/E. Cada edificio consulta el catálogo vigente, sus grupos y plantas. D/E permanecen como referencias hasta tener catálogo y planos publicados.
+
+La fecha bajo «Datos actualizados» proviene de la versión académica publicada, nunca del reloj del visitante. Si no se puede verificar, aparece como no disponible. Tutores muestra todos al entrar y permite filtrar después.
+
+El directorio acepta PROFESOR, CORREO ELECTRÓNICO, CATEGORÍA, ENT1/SAL1, ENT2/SAL2, ENT3/SAL3, ENT4/SAL4 y ENT5/SAL5 (lunes–viernes). Detecta el encabezado y permite elegir su fila; en el formato institucional corresponde a la fila 3. Ignora contrato, número de empleado, sumas y totales. Cada día requiere entrada y salida válidas en orden; los días vacíos se muestran sin horario registrado. Se conserva compatibilidad con horario_laboral de texto libre.

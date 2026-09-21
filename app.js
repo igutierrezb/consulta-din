@@ -29,14 +29,14 @@ function refreshModel(id){
  window.dispatchEvent(new CustomEvent('din-data',{detail:{groups:model.groups,period:model.period}}));render();if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));
 }
 async function start(){
- if(busy)return;busy=true;if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));$('refresh').disabled=true;$('period').disabled=true;$('connection').textContent='Conectando…';
+ if(busy)return;busy=true;if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));$('refresh').disabled=true;$('period').disabled=true;$('connection').textContent='Conectando…';$('dataUpdated').textContent='';
  const selected=$('period').value;data=null;model=null;$('results').innerHTML=empty('Consultando la información','Un momento, estamos leyendo la base académica.');$('status').textContent='Actualizando datos…';$('count').textContent='';
  if($('mapDialog').open)$('mapDialog').close();
  try{
   const snapshot=await DIN_SOURCE.load(SHEETS,loadLegacySheet);data=snapshot.data;sourceIssues=snapshot.issues; window.DIN_PLANOS=snapshot.plans||window.DIN_PLANOS;
   const periods=data.PERIODOS.filter(p=>active(p.activo));$('period').innerHTML=periods.length?periods.map(p=>`<option value="${esc(p.id_periodo)}">${esc(p.nombre)}</option>`).join(''):'<option value="">Sin periodo activo</option>';
   if(periods.some(p=>str(p.id_periodo)===selected))$('period').value=selected;
-  $('period').disabled=!periods.length;refreshModel($('period').value);$('connection').textContent=snapshot.issues.length?'Información parcial':'Datos actualizados';  window.dispatchEvent(new CustomEvent('din-data',{detail:{groups:model.groups,period:model.period}}));$('connection').title='Consultados: '+new Date().toLocaleString('es-MX');
+  $('period').disabled=!periods.length;refreshModel($('period').value);$('connection').textContent=snapshot.issues.length?'Información parcial':'Datos actualizados';  window.dispatchEvent(new CustomEvent('din-data',{detail:{groups:model.groups,period:model.period}}));$('connection').title='Consultados: '+new Date().toLocaleString('es-MX');const updated=new Date(snapshot.updated||'');$('dataUpdated').textContent=Number.isFinite(updated.getTime())?'Actualización: '+updated.toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}):'Fecha de actualización no disponible';
  }catch(e){$('connection').textContent='Sin conexión';$('period').innerHTML='<option value="">Datos no disponibles</option>';$('statGroups').textContent=$('statBuildings').textContent=$('statPlans').textContent='—';$('status').className='status error';$('status').textContent=e.message+' Pulsa «Actualizar datos» para volver a intentarlo.';$('results').innerHTML=empty('No pudimos cargar la información','No se muestran ubicaciones guardadas para evitar datos desactualizados.');}
  finally{busy=false;$('refresh').disabled=false;}
 }
@@ -57,7 +57,6 @@ function render(){
  if(mode==='profesores'||mode==='grupos')return;
  $('resultTitle').textContent=mode==='groups'?'Grupos del periodo':mode==='tutors'?'Tutores y sus grupos':'Edificios División Industrial';
  if(mode==='rooms'){renderBuildings(query);return;}
- if(mode==='tutors'&&!query&&!$('career').value){$('count').textContent='';$('results').innerHTML=empty(mode==='tutors'?'Encuentra a tu tutor':'Tu grupo, tu tutor y tu aula','Busca por grupo, nombre, carrera o correo.');return;}
  const groups=matchingGroups(query);
  if(mode==='groups'){$('count').textContent=groups.length+' grupos';$('results').innerHTML=groups.length?'<div class="group-picker" aria-label="Selecciona tu grupo">'+groups.map(g=>`<button type="button" class="group-pick" data-group="${esc(g.id_grupo)}"><strong>${esc(g.grupo)}</strong><small>${esc(g.ingenieria||'Ver tutor y aula')}</small></button>`).join('')+'</div><div id="groupDetail" class="group-detail"></div>':empty('Sin coincidencias','Prueba otro código, nombre, carrera o correo.');return;}
  const names=[...new Set(groups.map(g=>norm(g.tutor)).filter(n=>n&&!['sin tutor','fusion'].includes(n)))];
@@ -84,10 +83,10 @@ function setMode(value){
  for(const id of ['academicSearch','academicHeading','results','hint'])$(id).hidden=schedule;
  $('horarios').hidden=!schedule;$('careerWrap').hidden=!['groups','tutors'].includes(value);
  if(schedule){DIN_SCHEDULE.mount(value,$('horarios'));return;}
- DIN_SCHEDULE.cancel();$('search').value=searches[value]||'';
+ DIN_SCHEDULE.cancel();if(value==='tutors'){$('career').value='';searches.tutors='';}$('search').value=searches[value]||'';
  $('search').placeholder=value==='rooms'?'Busca grupo, edificio, planta o salón…':value==='tutors'?'Busca tutor, correo, grupo o carrera…':'Busca grupo, carrera, tutor o correo…';
  $('search').setAttribute('aria-label',$('search').placeholder);
- $('hint').textContent=value==='rooms'?'Todos los planos vigentes. Busca un grupo para resaltar su salón en amarillo.':'Selecciona tu grupo. También puedes filtrar por carrera o buscar sin acentos.';render();if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));
+ $('hint').textContent=value==='rooms'?'Todos los planos vigentes. Busca un grupo para resaltar su salón en amarillo.':value==='tutors'?'Todos los tutores vigentes de la división. Puedes filtrar por nombre, grupo o carrera.':'Selecciona tu grupo. También puedes filtrar por carrera o buscar sin acentos.';render();if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));
 }
 function miniPlan(p,selected=new Set()){
  const rooms=model.rooms.filter(r=>model.geometry(r)?.plan===p),spaces=[...p.spaces];

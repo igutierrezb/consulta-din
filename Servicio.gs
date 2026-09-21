@@ -43,7 +43,7 @@ function doGet(e) {
 
 function publicAcademic_(p,callback){
  const state=release_(),revision=state?.revision||'sheets';let result={ok:true};
- if(p.action==='manifest')result={ok:true,api:2,revision,active:state?.active||null};
+ if(p.action==='manifest')result={ok:true,api:2,revision,active:state?.active||null,updated:state?.updated||null};
  else{
   if(p.revision!==revision)throw Error('El horario o los datos cambiaron. Actualiza la consulta.');
   if(p.action==='plans')result.plans=state?.plans||[];

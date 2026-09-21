@@ -24,7 +24,7 @@ window.DIN_SOURCE=(()=>{
   if(stale.size){data.ASIGNACION_AULAS=[];issues.push('Ubicaciones de grupos suspendidas hasta verificar todas sus fuentes; puedes consultar los demás módulos.');}
   let plans=basePlans; if(manifest)try{const r=await rpc({action:'plans',revision});plans=basePlans.filter(p=>!r.plans.some(q=>q.id===p.id||(q.edificio===p.edificio&&q.planta===p.planta))).concat(r.plans);}catch{issues.push('Croquis: no se pudieron comprobar las actualizaciones.');plans=[];}
   else if(migrated){plans=[];issues.push('Croquis: sin conexión para verificar la versión vigente.');}
-  return {data,plans,issues};
+  return {data,plans,issues,updated:manifest?.updated||null};
  }
  return {load,rpc};
 })();

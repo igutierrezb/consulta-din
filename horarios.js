@@ -107,6 +107,13 @@ window.DIN_SCHEDULE=(()=>{
    await draw();
   }
  }
+ function dinWorkTime_(value){
+ const v=String(value??'').trim();if(!v)return '';
+ if(/^0?\.\d+$/.test(v)){const minutes=Math.round(Number(v)*1440);if(minutes>=0&&minutes<1440)return String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');}
+ const m=v.toLowerCase().replace(/[.\s]/g,'').match(/^(\d{1,2}):(\d{2})(?::00)?(am|pm)?$/);if(!m)throw Error('Usa horas como 07:00 o 15:00.');let h=Number(m[1]),min=Number(m[2]);if(min>59||h>23||(m[3]&&(h<1||h>12)))throw Error('Hora fuera de rango.');if(m[3])h=h%12+(m[3]==='pm'?12:0);return String(h).padStart(2,'0')+':'+m[2];
+}
+
+ function workHoursHtml(record){const days=['Lunes','Martes','Miércoles','Jueves','Viernes'];const any=days.some((_,i)=>record?.['ent'+(i+1)]||record?.['sal'+(i+1)]);if(!any)return esc(record?.horario_laboral||'Pendiente de captura en el directorio');const display=v=>{const t=dinWorkTime_(v),[h,m]=t.split(':').map(Number);return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' a. m.':' p. m.');};return '<dl class="work-hours">'+days.map((day,i)=>{const a=record['ent'+(i+1)],b=record['sal'+(i+1)];let text='Sin horario registrado';try{if(a&&b)text='Entra a las '+display(a)+' · Sale a las '+display(b);}catch{text='Horario pendiente de revisar';}return '<div><dt>'+day+'</dt><dd>'+esc(text)+'</dd></div>';}).join('')+'</dl>';}
  async function teacherProfile(entry,name,target,token){
   target.className='teacher-profile';target.textContent='Consultando directorio del profesor…';
   let record=null,warning='';
@@ -114,7 +121,7 @@ window.DIN_SCHEDULE=(()=>{
   if(token!==serial)return;
   const aliases=[name,record?.nombre,record?.nombre_tutor].filter(Boolean).map(norm),groups=academic.period?.id_periodo===entry.period?academic.groups.filter(g=>aliases.includes(norm(g.tutor))):[];
   const email=record?.correo||groups.map(g=>g.correo).find(v=>/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(v||''));
-  target.innerHTML=`<h4>${esc(record?.nombre||name)}</h4><p><strong>Categoría:</strong> ${esc(record?.categoria||'Pendiente de captura')}</p>${groups.length?`<p class="tutor-badge">Tutor de ${groups.map(g=>esc(g.grupo)).join(', ')}</p>`:''}<p><strong>Correo:</strong> ${email?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'Pendiente de captura'}</p><p><strong>Horario laboral:</strong><br>${esc(record?.horario_laboral||'Pendiente de captura en el directorio')}</p>${warning?`<p role="status">${esc(warning)}</p>`:''}<h4>Horario de clases</h4>`;
+  target.innerHTML=`<h4>${esc(record?.nombre||name)}</h4><p><strong>Categoría:</strong> ${esc(record?.categoria||'Pendiente de captura')}</p>${groups.length?`<p class="tutor-badge">Tutor de ${groups.map(g=>esc(g.grupo)).join(', ')}</p>`:''}<p><strong>Correo:</strong> ${email?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'Pendiente de captura'}</p><div><strong>Horario laboral:</strong>${workHoursHtml(record)}</div>${warning?`<p role="status">${esc(warning)}</p>`:''}<h4>Horario de clases</h4>`;
  }
 
  return {mount,select:(type,name)=>{queries[type]=name;host.querySelector('#scheduleQuery').value=name;search(type,name);},cancel:()=>{++serial;},identify};
