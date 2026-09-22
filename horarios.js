@@ -71,14 +71,26 @@ window.DIN_SCHEDULE=(()=>{
   const aliases=record?[name,record.nombre,record.nombre_tutor].filter(Boolean):uniqueNames.length===1?[name]:[];
   const keys=new Set(aliases.map(key));return academic.groups.filter(g=>DIN.hasTutor(g.tutor)&&keys.has(key(g.tutor)));
  }
- function tutorBadge(button,entry,name){const groups=tutorGroups(entry,name);if(!groups.length)return;const badge=document.createElement('span');badge.textContent='♟';badge.className='teacher-tutor-icon';badge.setAttribute('aria-hidden','true');button.prepend(badge);button.title='Tutor de '+groups.map(g=>g.grupo).join(', ');button.setAttribute('aria-label',name+', tutor');}
+
+ // PDF: nombres primero. Directorio y tutorías: apellidos primero.
+ // Solo cambia la etiqueta; la búsqueda conserva el encabezado original del PDF.
+ function teacherLabel(entry,name){
+  const rows=(entry?.directoryData?.rows||[]).filter(r=>norm(r.nombre_pdf)===norm(name));
+  if(rows.length===1&&rows[0].nombre)return rows[0].nombre;
+  const groups=tutorGroups(entry,name);if(groups.length)return groups[0].tutor;
+  const words=String(name).trim().split(/\s+/);if(words.length<3)return name;
+  const particles=new Set(['de','del','la','las','los','da','das','do','dos','van','von']);
+  const surname=()=>{const part=[words.pop()];while(words.length>1&&particles.has(norm(words[words.length-1])))part.unshift(words.pop());return part.join(' ');};
+  const maternal=surname(),paternal=surname();return [paternal,maternal,words.join(' ')].filter(Boolean).join(' ');
+ }
+ function tutorBadge(button,entry,name){const groups=tutorGroups(entry,name);if(!groups.length)return;const badge=document.createElement('span');badge.textContent='♟';badge.className='teacher-tutor-icon';badge.setAttribute('aria-hidden','true');button.append(badge);button.title='Tutor de '+groups.map(g=>g.grupo).join(', ');button.setAttribute('aria-label',teacherLabel(entry,name)+', tutor');}
 
  function suggest(type){
   const input=host.querySelector('#scheduleQuery'),q=norm(input.value),entry=cache.get(type),selected=document.getElementById('period')?.value;
   const names=type==='grupos'?academic.groups.map(g=>g.grupo):(entry&&(!selected||entry.period===selected)?entry.pages.map(p=>p.name):[]);
-  const unique=[...new Set(names)].filter(n=>q.split(' ').every(t=>norm(n).includes(t))).sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
+  const unique=[...new Set(names)].filter(n=>q.split(' ').every(t=>norm(n).includes(t))).sort((a,b)=>DIN.naturalOrder(type==='profesores'?teacherLabel(entry,a):a,type==='profesores'?teacherLabel(entry,b):b));
   const container=host.querySelector('#scheduleSuggestions');container.className='schedule-suggestions';container.replaceChildren();
-  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
+  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=type==='profesores'?teacherLabel(entry,name):name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
  }
  // Una sola extracción a la vez; consultas anteriores nunca sustituyen la vista vigente.
  let queue=Promise.resolve();
@@ -93,11 +105,11 @@ window.DIN_SCHEDULE=(()=>{
     const entry=await documentFor(type,notice);if(token!==serial)return;
     const exact=entry.pages.filter(p=>norm(p.name).replace(/\s/g,'')===q.replace(/\s/g,''));
     const matches=exact.length?exact:entry.pages.filter(p=>q.split(' ').every(t=>norm(p.name).includes(t)));
-    const names=[...new Set(matches.map(p=>p.name))].sort(DIN.naturalOrder);
+    const names=[...new Set(matches.map(p=>p.name))].sort((a,b)=>DIN.naturalOrder(type==='profesores'?teacherLabel(entry,a):a,type==='profesores'?teacherLabel(entry,b):b));
     notice(names.length?names.length+' coincidencia(s) · Periodo '+entry.period+' · Fuente verificada en Drive.':'No se encontró un horario con ese nombre o grupo.');
     if(names.length===1){await show(entry,matches,token);return;}
     const container=host.querySelector('#scheduleMatches');
-    names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-choice';b.textContent=name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>search(type,name);container.append(b);});
+    names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-choice';b.textContent=type==='profesores'?teacherLabel(entry,name):name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>search(type,name);container.append(b);});
    }catch(e){notice(e.message||'No se pudo consultar el horario. Intenta nuevamente.');}
   });
  }
