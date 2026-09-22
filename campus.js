@@ -8,8 +8,8 @@
   {id:'G',name:'G',aliases:['G'],points:'955,922 1088,866 1115,932 980,987'},
   {id:'CIC',name:'CIC 4.0',aliases:['CIC','CIC 4.0'],points:'920,414 948,369 934,340 1034,298 1065,256 1106,269 1076,318 1090,345 1000,380 956,431'},
   {id:'PIDET',name:'PIDET',aliases:['PIDET'],points:'901,242 932,194 916,168 1025,123 1048,85 1090,96 1070,139 1090,172 984,215 939,260'},
-  {id:'D',key:'7E-E',name:'Laboratorio 7E-E',label:{x:902,y:1430,text:'7E-E',width:115},aliases:['7E-E','Laboratorio 7E-E','D'],reference:true,points:'817,1430 961,1375 988,1435 842,1495'},
-  {id:'E',key:'4E-E',name:'Laboratorio 4E-E',label:{x:1060,y:1402,text:'4E-E',width:103},aliases:['4E-E','Laboratorio 4E-E','E'],reference:true,points:'1003,1392 1080,1360 1107,1422 1030,1454'}
+  {id:'D',key:'7EE',name:'7EE',label:{x:902,y:1430,text:'7EE',width:115},aliases:['7EE','7E-E','Laboratorio 7E-E','D'],reference:true,points:'817,1430 961,1375 988,1435 842,1495'},
+  {id:'E',key:'4EE',name:'4EE',label:{x:1060,y:1402,text:'4EE',width:103},aliases:['4EE','4E-E','Laboratorio 4E-E','E'],reference:true,points:'1003,1392 1080,1360 1107,1422 1030,1454'}
  ].sort((a,b)=>DIN.naturalOrder(a.name,b.name));
  let selected=null,campusScale=1,previousFocus=null;
  function includeCatalog(){for(const b of model?.buildings||[])if(!areas.some(a=>buildingFor(a)?.id_edificio===b.id_edificio))areas.push({id:b.id_edificio,name:DIN.buildingLabel(b),aliases:[],points:''});areas.sort((a,b)=>DIN.naturalOrder(a.name,b.name));}

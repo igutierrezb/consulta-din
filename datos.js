@@ -61,7 +61,7 @@
   return {periods,period,groups,buildings,rooms,assignments,issues,building,placements,geometry,roomLabel};
  }
  function hasAssignedTutor(value){const name=String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');return !!name&&!['sin tutor','sin tutora','sin asignar','no asignado','no asignada','pendiente','pendiente de asignacion','pendiente de captura','fusion','n/a','na','ninguno','ninguna','0','-','—'].includes(name);}
-function displayBuildingName(value){const name=String(value??'').trim(),key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');if(['n','h1','nano','nanoh1','ednanoh1','edificionano','edificionanoh1'].includes(key))return 'Nano';if(['d','laboratoriod','7ee','laboratorio7ee'].includes(key))return 'Laboratorio 7E-E';if(['e','laboratorioe','4ee','laboratorio4ee'].includes(key))return 'Laboratorio 4E-E';return name;}
+function displayBuildingName(value){const name=String(value??'').trim(),key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');if(['n','h1','nano','nanoh1','ednanoh1','edificionano','edificionanoh1'].includes(key))return 'Nano';if(['d','laboratoriod','7ee','laboratorio7ee'].includes(key))return '7EE';if(['e','laboratorioe','4ee','laboratorio4ee'].includes(key))return '4EE';return name;}
 function naturalOrder(a,b){return String(a??'').localeCompare(String(b??''),'es',{numeric:true,sensitivity:'base'});}
 function floorOrder(a,b){const name=v=>String(v??'').toLowerCase().replace(/^planta /,'');const rank=v=>name(v)==='baja'?0:name(v)==='alta'?1:2;return rank(a)-rank(b)||naturalOrder(a,b);}
 
