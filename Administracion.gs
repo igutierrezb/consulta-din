@@ -39,17 +39,26 @@ function validateRows_(table,rows){
   if(table==='ASIGNACION_AULAS'&&!(String(r.id_aula||'').trim()||String(r.salon||'').trim()))errors.push('Fila '+(i+2)+': completa salon o id_aula; grupo vacío significa sin asignación');
  });return errors;
 }
+
+function buildingKey_(v){const k=normalizar_(v).replace(/[^a-z0-9]/g,'').replace(/^edificio/,'').replace(/^ed/,'');if(['n','h1','nano','nanoh1'].includes(k))return 'nano';if(['h','ambiental','ambientalh'].includes(k))return 'ambiental';return k;}
+function resolveBuilding_(s,value){const list=s.data.EDIFICIOS,exact=list.filter(b=>b.id_edificio===value);if(exact.length)return exact.length===1?exact[0]:null;const found=list.filter(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&buildingKey_(v)===buildingKey_(value)));return found.length===1?found[0]:null;}
+function repairReferences_(s){s.data.AULAS.forEach(r=>{const b=resolveBuilding_(s,r.edificio);if(b)r.edificio=b.id_edificio;});s.data.ASIGNACION_AULAS.forEach(a=>{const b=resolveBuilding_(s,a.edificio);if(b)a.edificio=b.id_edificio;});return s;}
+function retainTutors_(s){const saved=new Map((s.tutorCatalog||[]).map(t=>[normalizar_(t.nombre),t]));s.data.GRUPOS.forEach(g=>{if(String(g.tutor||'').trim()&&!/^(sin |pendiente|fusi[oó]n|n\/a|[-—]$)/i.test(g.tutor))saved.set(normalizar_(g.tutor),{nombre:g.tutor,correo:g.correo||''});});s.tutorCatalog=[...saved.values()];}
+function clearPeriod_(s,r){if(!s.data.PERIODOS.some(p=>p.id_periodo===r.period)||r.confirmation!==r.period)throw Error('Escribe exactamente el código del periodo que deseas vaciar.');retainTutors_(s);s.staffCatalog=s.staffCatalog||[];const old=s.directories?.[r.period]?.rows||[];const staff=new Map(s.staffCatalog.map(x=>[normalizar_(x.nombre),x]));old.forEach(x=>staff.set(normalizar_(x.nombre),x));s.staffCatalog=[...staff.values()];s.data.GRUPOS=s.data.GRUPOS.filter(g=>g.periodo!==r.period);s.data.ASIGNACION_AULAS=s.data.ASIGNACION_AULAS.filter(a=>a.periodo!==r.period);delete s.schedules[r.period];if(s.directories)delete s.directories[r.period];}
+function importTutors_(s,rows,period){if(!Array.isArray(rows)||!rows.length||rows.length>10000||period!==s.active)throw Error('Selecciona el periodo y carga entre 1 y 10000 tutorías.');const seen=new Set();rows.forEach((r,i)=>{const matches=s.data.GRUPOS.filter(g=>g.periodo===period&&(r.id_grupo?g.id_grupo===r.id_grupo:normalizar_(g.grupo)===normalizar_(r.grupo)));if(matches.length!==1)throw Error('Fila '+(i+2)+': primero carga el grupo o indica su código correcto.');const g=matches[0];if(seen.has(g.id_grupo))throw Error('Grupo repetido en tutorías: '+g.grupo);seen.add(g.id_grupo);g.tutor=String(r.tutor||'').trim();g.correo=String(r.correo||'').trim();if(g.tutor.length>300||g.correo.length>300)throw Error('Nombre o correo demasiado largo.');});retainTutors_(s);}
+
 function validateState_(s){
+ repairReferences_(s);
  const errors=[];Object.keys(DIN_TABLES_).forEach(t=>errors.push(...validateRows_(t,s.data[t]||[])));
  const active=v=>['true','verdadero','1','si'].includes(normalizar_(v));
  if(!s.data.PERIODOS.some(p=>p.id_periodo===s.active))errors.push('Selecciona un periodo existente.');
  const gs=s.data.GRUPOS.filter(g=>g.periodo===s.active&&(!Object.hasOwn(g,'activo')||active(g.activo)));
  if(!gs.length)errors.push('El periodo necesita grupos activos.');
  const codes=new Set();gs.forEach(g=>{if(codes.has(normalizar_(g.grupo)))errors.push('Código de grupo duplicado: '+g.grupo);codes.add(normalizar_(g.grupo));});
- s.data.AULAS.filter(r=>active(r.activo)).forEach(r=>{if(s.data.EDIFICIOS.filter(b=>active(b.activo)&&[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&normalizar_(v)===normalizar_(r.edificio))).length!==1)errors.push('Edificio inexistente o ambiguo para '+r.id_aula);});
+ s.data.AULAS.filter(r=>active(r.activo)).forEach(r=>{if(!resolveBuilding_(s,r.edificio)||!active(resolveBuilding_(s,r.edificio).activo))errors.push('Edificio inexistente o ambiguo para '+r.id_aula);});
  s.data.ASIGNACION_AULAS.filter(a=>a.periodo===s.active&&active(a.activo)).forEach((a,i)=>{
-  const groups=gs.filter(g=>a.grupo?normalizar_(g.grupo)===normalizar_(a.grupo):g.id_grupo===a.id_grupo);
-  const rooms=s.data.AULAS.filter(r=>active(r.activo)&&(a.salon?normalizar_(r.nombre)===normalizar_(a.salon):r.id_aula===a.id_aula)&&(!a.planta||normalizar_(r.planta).replace(/^planta /,'')===normalizar_(a.planta).replace(/^planta /,''))&&(!a.edificio||s.data.EDIFICIOS.some(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&normalizar_(v)===normalizar_(a.edificio))&&[b.id_edificio,b.nombre,b.nombre_completo].includes(r.edificio))));
+  const groups=gs.filter(g=>a.id_grupo?g.id_grupo===a.id_grupo:normalizar_(g.grupo)===normalizar_(a.grupo));
+  const rooms=s.data.AULAS.filter(r=>active(r.activo)&&(a.id_aula?r.id_aula===a.id_aula:normalizar_(r.nombre)===normalizar_(a.salon)&&(!a.planta||normalizar_(r.planta).replace(/^planta /,'')===normalizar_(a.planta).replace(/^planta /,''))&&(!a.edificio||resolveBuilding_(s,a.edificio)?.id_edificio===resolveBuilding_(s,r.edificio)?.id_edificio)));
   if(((a.grupo||a.id_grupo)&&groups.length!==1)||rooms.length!==1)errors.push('Asignación '+(i+1)+': grupo o aula inexistente/ambiguo.');
  });
  ['profesores','grupos'].forEach(k=>{if(!s.schedules[s.active]?.[k]?.id)errors.push('Falta horario de '+k+' para '+s.active);});
@@ -120,7 +129,7 @@ function unifiedImport_(state,rows,period,catalogOnly){
 function adminAction(request){
  const email=adminIdentity_(),r=request||{},lock=LockService.getScriptLock();lock.waitLock(30000);
  try{
-  let s=draft_();
+  let s=repairReferences_(draft_());
   if(r.action==='read')return {state:s,email,errors:validateState_(s)};
   if(r.revision!==s.revision)throw Error('Otra sesión modificó el borrador. Recarga antes de continuar.');
   if(r.action==='validate')return {errors:validateState_(s)};
@@ -135,7 +144,9 @@ function adminAction(request){
    const rows=validateDirectory_(r.rows,r.names);s.directories=s.directories||{};s.directories[s.active]={rows,pdfVersion:current.version};
    s.editedBy=email;props_().setProperty('DIN_DRAFT',storeState_(s,'borrador'));return {state:s,email,errors:validateState_(s)};
   }
-  if(['previewUnified','importUnified','catalogEntry'].includes(r.action)){
+  if(r.action==='clearPeriod'){clearPeriod_(s,r);
+  }else if(r.action==='tutors'){importTutors_(s,r.rows,r.period);
+  }else if(['previewUnified','importUnified','catalogEntry'].includes(r.action)){
    const result=unifiedImport_(s,r.rows,r.period||s.active,r.action==='catalogEntry');
    if(r.action==='previewUnified')return result;
    if(result.errors.length)throw Error(result.errors.slice(0,20).join('\n'));

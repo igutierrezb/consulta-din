@@ -25,7 +25,9 @@ window.DIN_SCHEDULE=(()=>{
   const candidate=anchor>=0?lines[anchor+1]:null;
   return candidate&&/^[A-Z]{2,10}\s*\d{2,6}$/i.test(candidate)?candidate.replace(/\s/g,'').toUpperCase():null;
  }
- async function documentFor(type,notice){
+ const loadingDocuments=new Map();
+ function documentFor(type,notice){if(loadingDocuments.has(type))return loadingDocuments.get(type);const task=loadDocument(type,notice);loadingDocuments.set(type,task);task.then(()=>loadingDocuments.delete(type),()=>loadingDocuments.delete(type));return task;}
+ async function loadDocument(type,notice){
   const meta=await rpc('meta',type);const selected=document.getElementById('period')?.value;if(selected&&selected!=='Datos no disponibles'&&selected!=='Cargando periodos…'&&selected!==meta.period)throw Error('Drive contiene el periodo '+meta.period+'. Selecciona ese periodo para consultar sus horarios.');const old=cache.get(type);
   if(old?.version===meta.version)return old;
   if(old){cache.delete(type);await old.pdf.loadingTask.destroy();}
@@ -136,6 +138,6 @@ window.DIN_SCHEDULE=(()=>{
   target.innerHTML=`<h4>${esc(record?.nombre||name)}</h4><p><strong>Categoría:</strong> ${esc(record?.categoria||'Pendiente de captura')}</p>${groups.length?`<p class="tutor-badge">Tutor de ${groups.map(g=>esc(g.grupo)).join(', ')}</p>`:''}<p><strong>Correo:</strong> ${email?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'Pendiente de captura'}</p><div><strong>Horario laboral:</strong>${workHoursHtml(record)}</div>${warning?`<p role="status">${esc(warning)}</p>`:''}<h4>Horario de clases</h4>`;
  }
 
- return {mount,select:(type,name)=>{queries[type]=name;host.querySelector('#scheduleQuery').value=name;search(type,name);},cancel:()=>{++serial;},identify};
+ return {countTeachers:async()=>{const entry=await documentFor('profesores',()=>{});return new Set(entry.pages.map(p=>norm(p.name))).size;},mount,select:(type,name)=>{queries[type]=name;host.querySelector('#scheduleQuery').value=name;search(type,name);},cancel:()=>{++serial;},identify};
 })();
 

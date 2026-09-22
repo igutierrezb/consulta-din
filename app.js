@@ -20,7 +20,7 @@ function loadLegacySheet(sheet){
 function empty(title,detail){return `<div class="empty"><strong>${esc(title)}</strong>${esc(detail)}</div>`;}
 function buildModel(id){model=DIN.model(data,id,window.DIN_PLANOS);}
 function refreshModel(id){
- buildModel(id);$('statGroups').textContent=model.groups.length;$('statBuildings').textContent=model.buildings.length;$('statPlans').textContent=window.DIN_PLANOS.filter(p=>model.buildings.some(b=>b.id_edificio===p.edificio)).length;
+ buildModel(id);$('statTutors').textContent=new Set(model.groups.filter(g=>DIN.hasTutor(g.tutor)).map(g=>norm(g.tutor))).size;$('statTeachers').textContent='—';const teacherPeriod=model.period?.id_periodo;if(teacherPeriod)DIN_SCHEDULE.countTeachers().then(count=>{if(model?.period?.id_periodo===teacherPeriod)$('statTeachers').textContent=count;}).catch(()=>{});$('statGroups').textContent=model.groups.length;$('statBuildings').textContent=model.buildings.length;$('statPlans').textContent=window.DIN_PLANOS.filter(p=>model.buildings.some(b=>b.id_edificio===p.edificio)).length;
  const career=$('career').value;$('career').innerHTML='<option value="">Todas las carreras</option>'+[...new Set(model.groups.map(g=>str(g.ingenieria)).filter(Boolean))].sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');if([...$('career').options].some(o=>o.value===career))$('career').value=career;
  $('status').className='status';
  $('status').textContent=!model.period?'No hay un periodo activo para consultar grupos.':!model.assignments.some(a=>active(a.activo))?'Las asignaciones de aulas de este periodo están pendientes de captura. Puedes consultar grupos, tutores y los planos de los edificios.':'';
