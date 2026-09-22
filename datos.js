@@ -60,6 +60,7 @@
   }
   return {periods,period,groups,buildings,rooms,assignments,issues,building,placements,geometry,roomLabel};
  }
- const api={str,norm,active,esc,unique,objects,model};
+ function hasAssignedTutor(value){const name=String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');return !!name&&!['sin tutor','sin tutora','sin asignar','no asignado','no asignada','pendiente','pendiente de asignacion','pendiente de captura','fusion','n/a','na','ninguno','ninguna','0','-','—'].includes(name);}
+ const api={hasTutor:hasAssignedTutor,str,norm,active,esc,unique,objects,model};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DIN=api;
 })(typeof window==='undefined'?this:window);

@@ -1,4 +1,4 @@
-/** Endpoint público de solo lectura. Publica únicamente los dos horarios autorizados. */
+/** Consulta pública académica y contador agregado de visitas, sin identificar visitantes. */
 function doGet(e) {
  const p=e && e.parameter || {},callback=p.callback||'';
  if(p.action==='admin'){
@@ -9,6 +9,7 @@ function doGet(e) {
  if(callback&&!/^dinRemote_[A-Za-z0-9_]{1,100}$/.test(callback))return ContentService.createTextOutput('{"ok":false,"error":"Callback inválido"}').setMimeType(ContentService.MimeType.JSON);
  let result;
  try {
+  if(p.action==='visits')return directoryResponse_(visits_(p.record==='1'));
   if(p.action==='directory'){
    const s=release_();if(!s)return directoryResponse_({ok:true,rows:[],period:null});
    const d=s.directories?.[s.active];const current=teacherVersion_(s,s.active);
@@ -68,3 +69,13 @@ function probarAcceso() {
 }
 
 function directoryResponse_(value){return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);}
+
+/** Contador agregado desde su instalación. No guarda IP, cuenta ni identificadores de visitante. */
+function visits_(record){
+ const lock=LockService.getScriptLock();lock.waitLock(3000);
+ try{const p=PropertiesService.getScriptProperties(),raw=p.getProperty('DIN_VISITS'),value=raw?JSON.parse(raw):{count:0,since:new Date().toISOString()};
+  if(!Number.isSafeInteger(value.count)||value.count<0)throw Error('Contador temporalmente no disponible.');
+  if(record&&value.count<Number.MAX_SAFE_INTEGER){value.count++;p.setProperty('DIN_VISITS',JSON.stringify(value));}
+  return {ok:true,count:value.count,since:value.since};
+ }finally{lock.releaseLock();}
+}

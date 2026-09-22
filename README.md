@@ -89,3 +89,8 @@ El acceso al mapa aparece junto a «Un lugar para aprender». La imagen oficial 
 La fecha bajo «Datos actualizados» proviene de la versión académica publicada, nunca del reloj del visitante. Si no se puede verificar, aparece como no disponible. Tutores muestra todos al entrar y permite filtrar después.
 
 El directorio acepta PROFESOR, CORREO ELECTRÓNICO, CATEGORÍA, ENT1/SAL1, ENT2/SAL2, ENT3/SAL3, ENT4/SAL4 y ENT5/SAL5 (lunes–viernes). Detecta el encabezado y permite elegir su fila; en el formato institucional corresponde a la fila 3. Ignora contrato, número de empleado, sumas y totales. Cada día requiere entrada y salida válidas en orden; los días vacíos se muestran sin horario registrado. Se conserva compatibilidad con horario_laboral de texto libre.
+
+### Visitas y resumen de tutorías
+
+El pie muestra un contador agregado de cargas de la página, desde su instalación; no representa personas únicas ni visitas históricas. `visits_` persiste únicamente cantidad y fecha inicial en DIN_VISITS, con bloqueo para evitar incrementos perdidos. No almacena IP ni cuenta del visitante. Su falla no afecta los módulos académicos.
+Las tarjetas de grupo muestran cuatrimestre y tutor cuando están capturados; los grupos sin tutor permanecen visibles, omitiendo tutores ficticios o pendientes. En Periodo, el resumen administrativo enumera grupos con/sin tutor y aula y desglosa por carrera/cuatrimestre. El resumen corresponde al borrador del periodo seleccionado.
