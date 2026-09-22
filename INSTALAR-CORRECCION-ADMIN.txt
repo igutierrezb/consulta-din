@@ -1,0 +1,14 @@
+ACTUALIZAR PUBLICACIÓN POR APARTADOS
+
+1. En tu proyecto existente de Apps Script, sustituye el contenido completo de Administracion.gs y AdminPanel.html por los archivos de esta entrega. No cambies IDs, permisos ni datos.
+2. Guarda. En Implementar > Gestionar implementaciones, edita la implementación administrativa, elige Nueva versión e implementa. Actualiza también la implementación pública a esa versión, conservando sus direcciones.
+3. Cierra y vuelve a abrir Administración.
+
+CAMBIAR UN GRUPO DE AULA
+En Asignar aulas selecciona el periodo, grupo, turno, edificio, planta y aula. Pulsa Revisar cambio de aula. Si hay otro grupo, confirma retirarlo. Pulsa Publicar este cambio de aula. No necesitas publicar el borrador completo ni corregir los pendientes ajenos a ese movimiento.
+Los demás periodos, turnos, horarios, croquis y datos publicados se conservan. Las otras modificaciones del borrador siguen pendientes.
+
+OTROS APARTADOS
+Guarda primero la importación, directorio, PDF o croquis en el borrador. Usa Publicar este apartado y el periodo correspondiente. Los edificios, aulas y croquis son compartidos entre periodos. Al publicar Edificios o Aulas se publica el catálogo completo de ambos; la hoja única publica el conjunto académico. Un periodo nuevo necesita una primera publicación completa; después permite publicaciones parciales.
+
+Esta entrega cambia el código del panel, no publica automáticamente tus datos ni mueve grupos reales.

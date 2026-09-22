@@ -139,8 +139,16 @@ function adminAction(request){
  const email=adminIdentity_(),r=request||{},lock=LockService.getScriptLock();lock.waitLock(30000);
  try{
   let s=repairReferences_(draft_());
-  if(r.action==='read')return {state:s,email,errors:validateState_(s)};
+  if(r.action==='read')return {state:s,email,errors:validateState_(s),publicInfo:publicInfo_(release_())};
   if(r.revision!==s.revision)throw Error('Otra sesión modificó el borrador. Recarga antes de continuar.');
+  if(['previewClassroomPublication','publishClassroom','publishPart'].includes(r.action)){
+   const pub=publicationBase_(r),oldId=props_().getProperty('DIN_RELEASE');
+   if(r.action==='publishPart'){const candidate=partCandidate_(s,pub,r);return commitPartial_(s,candidate,email,oldId,r.scope);}
+   const change=classroomPublication_(s,pub,r);if(r.action==='previewClassroomPublication')return change;
+   if(change.displaced.length&&!r.confirmDisplaced)throw Error('Confirma los grupos que serán retirados del aula.');
+   pub.data.ASIGNACION_AULAS=change.rows;pub.lastPartialPeriod=r.period;s.data.ASIGNACION_AULAS=change.draftRows;
+   return commitPartial_(s,pub,email,oldId,'cambio de aula de '+change.group);
+  }
   if(r.action==='validate')return {errors:validateState_(s)};
   if(r.action==='teacherPdf'){const p=teacherVersion_(s,s.active);if(p.file.getSize()>CONFIG_DIN.maxBytes)throw Error('El PDF supera el tamaño permitido.');return {period:s.active,version:p.version,base64:Utilities.base64Encode(p.file.getBlob().getBytes())};}
   if(['previewClassroom','moveClassroom'].includes(r.action)){
@@ -192,7 +200,7 @@ function adminAction(request){
    const id=storeState_(s,'publicado'),old=props_().getProperty('DIN_RELEASE');
    if(old)props_().setProperty('DIN_PREVIOUS',old);
    // A single pointer publishes the complete snapshot atomically.
-   props_().setProperty('DIN_RELEASE',id);props_().setProperty('DIN_DRAFT',id);return {state:s,email,errors:[],published:true};
+   props_().setProperty('DIN_RELEASE',id);props_().setProperty('DIN_DRAFT',id);return {state:s,email,errors:[],published:true,publicInfo:publicInfo_(s)};
   }else if(r.action==='rollback'){
    const previous=props_().getProperty('DIN_PREVIOUS');if(!previous)throw Error('No hay publicación anterior.');
    const old=props_().getProperty('DIN_RELEASE');props_().setProperty('DIN_RELEASE',previous);props_().setProperty('DIN_PREVIOUS',old);props_().setProperty('DIN_DRAFT',previous);s=jsonFile_(previous);return {state:s,email,errors:validateState_(s)};
@@ -214,11 +222,11 @@ function classroomChange_(s,r){
  if(!group||!room||!String(r.turn||'').trim())throw Error('Selecciona un grupo, un aula activa y el turno.');
  const building=s.data.EDIFICIOS.find(b=>on(b.activo)&&[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,room.edificio)));
  if(!building)throw Error('El aula no pertenece a un edificio activo.');
- const groupFor=a=>groups.find(g=>a.id_grupo?g.id_grupo===a.id_grupo:a.grupo&&same(g.grupo,a.grupo));
+ const groupFor=a=>assignmentGroup_(s,a);
  const inScope=a=>a.periodo===s.active&&on(a.activo)&&same(a.turno,r.turn);
  const isTarget=a=>{
   if(a.id_aula)return a.id_aula===room.id_aula;
-  const matches=s.data.AULAS.filter(candidate=>on(candidate.activo)&&a.salon&&same(a.salon,candidate.nombre)&&(!a.planta||same(String(a.planta).replace(/^planta /i,''),String(candidate.planta).replace(/^planta /i,'')))&&(!a.edificio||s.data.EDIFICIOS.some(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,a.edificio))&&[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,candidate.edificio)))));
+  const matches=s.data.AULAS.filter(candidate=>on(candidate.activo)&&a.salon&&same(a.salon,candidate.nombre||candidate.salon||candidate.aula)&&(!a.planta||same(String(a.planta).replace(/^planta /i,''),String(candidate.planta).replace(/^planta /i,'')))&&(!a.edificio||s.data.EDIFICIOS.some(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,a.edificio))&&[b.id_edificio,b.nombre,b.nombre_completo].some(v=>v&&same(v,candidate.edificio)))));
   if(matches.some(x=>x.id_aula===room.id_aula)&&matches.length!==1)throw Error('Una asignación anterior no identifica claramente el edificio y la planta. Corrígela en Excel y datos antes de mover este grupo.');
   return matches.length===1&&matches[0].id_aula===room.id_aula;
  };
@@ -248,4 +256,51 @@ function dinWorkTime_(value){
  const v=String(value??'').trim();if(!v)return '';
  if(/^0?\.\d+$/.test(v)){const minutes=Math.round(Number(v)*1440);if(minutes>=0&&minutes<1440)return String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');}
  const m=v.toLowerCase().replace(/[.\s]/g,'').match(/^(\d{1,2}):(\d{2})(?::00)?(am|pm)?$/);if(!m)throw Error('Usa horas como 07:00 o 15:00.');let h=Number(m[1]),min=Number(m[2]);if(min>59||h>23||(m[3]&&(h<1||h>12)))throw Error('Hora fuera de rango.');if(m[3])h=h%12+(m[3]==='pm'?12:0);return String(h).padStart(2,'0')+':'+m[2];
+}
+
+/** Publicación parcial: parte de la versión pública, no del borrador completo. */
+function publicInfo_(s){return s?{revision:s.revision,active:s.active,periods:s.data.PERIODOS.map(p=>({id_periodo:p.id_periodo,nombre:p.nombre}))}:null;}
+function publicationBase_(r){const pub=release_();if(!pub)throw Error('Primero publica una versión inicial completa del periodo.');if(!r.publicRevision||r.publicRevision!==pub.revision)throw Error('La publicación cambió en otra sesión. Recarga y revisa el cambio nuevamente.');if(!r.period||!pub.data.PERIODOS.some(p=>p.id_periodo===r.period))throw Error('Ese periodo aún no tiene una publicación inicial. Prepáralo en Periodo y publícalo completo una vez.');return pub;}
+function classroomPublication_(draft,pub,r){
+ if(r.period!==draft.active)throw Error('Selecciona el periodo del grupo antes de revisar el cambio.');
+ const copy=JSON.parse(JSON.stringify(pub));copy.active=r.period;
+ const dg=draft.data.GRUPOS.find(g=>g.periodo===r.period&&g.id_grupo===r.groupId),dr=draft.data.AULAS.find(a=>a.id_aula===r.roomId);
+ if(!dg||!dr)throw Error('Selecciona un grupo y un aula existentes.');
+ const g=assignmentGroup_(copy,{periodo:r.period,id_grupo:dg.id_grupo,grupo:dg.grupo}),db=resolveBuilding_(draft,dr.edificio);
+ const room=assignmentRoom_(copy,{id_aula:dr.id_aula,salon:dr.nombre||dr.salon||dr.aula,edificio:db?.id_edificio||dr.edificio,planta:dr.planta});
+ if(!g)throw Error('Publica primero este grupo desde Excel y datos.');if(!room)throw Error('Publica primero esta aula desde Catálogo.');
+ const change=classroomChange_(copy,{...r,groupId:g.id_grupo,roomId:room.id_aula}),draftChange=classroomChange_(draft,r);
+ const displaced=[...new Map([...change.displaced,...draftChange.displaced].map(g=>[g.id,g])).values()];
+ return {...change,displaced,draftRows:draftChange.rows,publicRevision:pub.revision,period:r.period};
+}
+function commitPartial_(draft,candidate,email,oldId,label){
+ candidate.publishedBy=email;draft.editedBy=email;
+ const publicId=storeState_(candidate,'publicado-'+label),draftId=storeState_(draft,'borrador');
+ // Ambos archivos existen antes de actualizar los punteros; los borradores ajenos se conservan.
+ props_().setProperties({DIN_PREVIOUS:oldId,DIN_DRAFT:draftId,DIN_RELEASE:publicId});
+ return {state:draft,email,published:true,publicInfo:publicInfo_(candidate),publicationMessage:'Publicado '+label+'. Periodo aplicado: '+candidate.lastPartialPeriod+'. Los demás apartados se conservaron.',errors:[]};
+}
+function partCandidate_(draft,pub,r){
+ const out=JSON.parse(JSON.stringify(pub)),period=r.period,scope=r.scope;
+ const replaceRows=table=>{const rows=draft.data[table].filter(x=>x.periodo===period);const errors=validateRows_(table,rows);if(errors.length)throw Error(errors.slice(0,5).join('\n'));out.data[table]=out.data[table].filter(x=>x.periodo!==period).concat(JSON.parse(JSON.stringify(rows)));};
+ if(scope==='groups')replaceRows('GRUPOS');
+ else if(scope==='tutors'){const gs=draft.data.GRUPOS.filter(g=>g.periodo===period);gs.forEach(g=>{const target=assignmentGroup_(out,{periodo:period,id_grupo:g.id_grupo,grupo:g.grupo});if(!target)throw Error('Publica primero el grupo '+g.grupo+'.');target.tutor=g.tutor||'';target.correo=g.correo||'';});}
+ else if(scope==='assignments')replaceRows('ASIGNACION_AULAS');
+ else if(scope==='catalog'){for(const table of ['EDIFICIOS','AULAS']){const errors=validateRows_(table,draft.data[table]);if(errors.length)throw Error(errors.slice(0,5).join('\n'));out.data[table]=JSON.parse(JSON.stringify(draft.data[table]));}}
+ else if(scope==='academic'){for(const table of ['EDIFICIOS','AULAS']){const errors=validateRows_(table,draft.data[table]);if(errors.length)throw Error(errors.slice(0,5).join('\n'));out.data[table]=JSON.parse(JSON.stringify(draft.data[table]));}replaceRows('GRUPOS');replaceRows('ASIGNACION_AULAS');}
+ else if(scope==='directory'){const d=draft.directories?.[period];if(!d||d.pdfVersion!==teacherVersion_(out,period).version)throw Error('Publica primero el PDF de profesores correspondiente y guarda el directorio vinculado a ese PDF.');out.directories=out.directories||{};out.directories[period]=JSON.parse(JSON.stringify(d));}
+ else if(scope==='pdf-grupos'||scope==='pdf-profesores'){const kind=scope.slice(4),pdf=draft.schedules[period]?.[kind];if(!pdf?.id)throw Error('Guarda primero este PDF en el periodo seleccionado.');const file=DriveApp.getFileById(pdf.id);if(file.getMimeType()!=='application/pdf'||file.getSize()>CONFIG_DIN.maxBytes)throw Error('PDF inválido o demasiado grande.');out.schedules[period]={...(out.schedules[period]||{}),[kind]:JSON.parse(JSON.stringify(pdf))};}
+ else if(scope==='plan'){const p=draft.plans.find(p=>p.id===r.planId);if(!p)throw Error('Guarda primero el croquis seleccionado.');validatePlan_(p);if(!out.data.EDIFICIOS.some(b=>b.id_edificio===p.edificio))throw Error('Publica primero el edificio desde Catálogo.');for(const zone of p.spaces.filter(z=>z.roomId)){const room=out.data.AULAS.find(a=>a.id_aula===zone.roomId);if(!room||resolveBuilding_(out,room.edificio)?.id_edificio!==p.edificio||normalizar_(room.planta).replace(/^planta /,'')!==normalizar_(p.planta).replace(/^planta /,''))throw Error('Publica primero las aulas de este croquis desde Catálogo.');room.posicion=zone.key;}out.plans=out.plans.filter(x=>x.id!==p.id&&!(x.edificio===p.edificio&&x.planta===p.planta));out.plans.push(JSON.parse(JSON.stringify(p)));}
+ else throw Error('Apartado de publicación no permitido.');
+ // Revisa únicamente relaciones académicas. Los PDFs o directorios pendientes no bloquean un aula.
+ if(['groups','assignments','catalog','academic'].includes(scope)){
+  const active=x=>!Object.hasOwn(x,'activo')||['true','verdadero','1','si'].includes(normalizar_(x.activo));
+  const invalid=(state,a)=>{const g=assignmentGroup_(state,a),room=assignmentRoom_(state,a),building=room&&resolveBuilding_(state,room.edificio);return !!(a.grupo||a.id_grupo)&&(!g||!active(g))||!room||!active(room)||!building||!active(building);};
+  const before=new Set(pub.data.ASIGNACION_AULAS.filter(a=>active(a)&&invalid(pub,a)).map(a=>JSON.stringify(a)));
+  const broken=out.data.ASIGNACION_AULAS.filter(a=>active(a)&&invalid(out,a)&&(['assignments','academic'].includes(scope)&&a.periodo===period||!before.has(JSON.stringify(a))));
+  if(broken.length)throw Error('Este apartado dejaría asignaciones sin grupo o aula confirmados. Corrige las asignaciones afectadas antes de publicarlo.');
+  if(['catalog','academic'].includes(scope)){for(const room of out.data.AULAS){if(active(room)&&!resolveBuilding_(out,room.edificio))throw Error('El aula '+(room.nombre||room.id_aula)+' necesita un edificio existente.');}for(const p of out.plans||[]){if(!(pub.plans||[]).some(x=>x.id===p.id))continue;const existed=pub.data.EDIFICIOS.some(b=>b.id_edificio===p.edificio);if(existed&&!out.data.EDIFICIOS.some(b=>b.id_edificio===p.edificio))throw Error('El edificio tiene un croquis publicado. Conserva su referencia.');for(const z of p.spaces||[]){if(!z.roomId)continue;const old=pub.data.AULAS.find(a=>a.id_aula===z.roomId),next=out.data.AULAS.find(a=>a.id_aula===z.roomId);if(old&&(!next||next.edificio!==old.edificio||next.planta!==old.planta))throw Error('El aula '+z.roomId+' tiene una zona en un croquis publicado. Conserva edificio y planta.');}}}
+  if(['groups','academic'].includes(scope)&&!out.data.GRUPOS.some(g=>g.periodo===period&&active(g)))throw Error('No se puede publicar un periodo sin grupos activos.');
+ }
+ out.lastPartialPeriod=period;return out;
 }
