@@ -2,7 +2,7 @@
 window.DIN_SCHEDULE=(()=>{
  'use strict';
  const {norm,esc}=DIN,cache=new Map(),pending=new Map(),queries={profesores:'',grupos:''};
- let serial=0,kind='',host=null,libPromise=null,academic={groups:[],period:null}; window.addEventListener('din-data',e=>{academic=e.detail;});
+ let serial=0,kind='',host=null,libPromise=null,academic={groups:[],period:null}; window.addEventListener('din-data',e=>{academic=e.detail;for(const entry of cache.values()){delete entry.directoryPromise;delete entry.directoryData;}});
  function request(action,type,version=''){return window.DIN_REMOTE.request({action,kind:type,version});}
  function rpc(action,type,version=''){
   const key=JSON.stringify([action,type,version]);
@@ -54,17 +54,29 @@ window.DIN_SCHEDULE=(()=>{
   suggest(type);if(options.inline){host.querySelector('form').hidden=true;host.querySelector('#scheduleSuggestions').hidden=true;}
   if(type==='profesores'){
    const mountedHost=host;
-   queue=queue.catch(()=>{}).then(async()=>{if(host!==mountedHost||kind!==type)return;try{await documentFor(type,s=>{if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=s;});if(host===mountedHost&&kind===type){suggest(type);host.querySelector('#scheduleStatus').textContent='Selecciona un profesor o escribe parte de su nombre.';}}catch(e){if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=e.message;}});
+   queue=queue.catch(()=>{}).then(async()=>{if(host!==mountedHost||kind!==type)return;try{await documentFor(type,s=>{if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=s;});if(host===mountedHost&&kind===type){suggest(type);host.querySelector('#scheduleStatus').textContent='Selecciona un profesor o escribe parte de su nombre. ♟ identifica a los tutores.';const entry=cache.get(type);directoryFor(entry).then(()=>{if(host===mountedHost&&kind===type)suggest(type);}).catch(()=>{});}}catch(e){if(host===mountedHost&&kind===type)host.querySelector('#scheduleStatus').textContent=e.message;}});
   }
   const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.className='schedule-choice';retry.onclick=()=>{const query=host.querySelector('#scheduleQuery').value;if(query.trim())search(type,query);else mount(type,element);};host.querySelector('#scheduleStatus').after(retry);
   if(type!=='profesores')rpc('meta',type).then(meta=>{if(token===serial)host.querySelector('#scheduleStatus').textContent='Disponible · Periodo '+meta.period+' · Actualizado en Drive: '+new Date(meta.modified).toLocaleString('es-MX');}).catch(e=>{if(token===serial)host.querySelector('#scheduleStatus').textContent=e.message;});
  }
+
+ // Reuse one directory read for the teacher list and the selected profile.
+ function directoryFor(entry){if(!entry.directoryPromise)entry.directoryPromise=window.DIN_REMOTE.request({action:'directory'}).then(d=>{if(d.period===entry.period&&d.pdfVersion===entry.version&&Array.isArray(d.rows))entry.directoryData=d;return d;}).catch(e=>{delete entry.directoryPromise;throw e;});return entry.directoryPromise;}
+ function tutorGroups(entry,name){
+  if(!entry||academic.period?.id_periodo!==entry.period)return [];
+  const key=v=>norm(v).split(' ').filter(Boolean).sort().join(' '),matches=(entry.directoryData?.rows||[]).filter(r=>norm(r.nombre_pdf)===norm(name)),record=matches.length===1?matches[0]:null;
+  const uniqueNames=[...new Set(entry.pages.map(p=>p.name))].filter(n=>key(n)===key(name));
+  const aliases=record?[name,record.nombre,record.nombre_tutor].filter(Boolean):uniqueNames.length===1?[name]:[];
+  const keys=new Set(aliases.map(key));return academic.groups.filter(g=>DIN.hasTutor(g.tutor)&&keys.has(key(g.tutor)));
+ }
+ function tutorBadge(button,entry,name){const groups=tutorGroups(entry,name);if(!groups.length)return;const badge=document.createElement('span');badge.textContent='♟';badge.className='teacher-tutor-icon';badge.setAttribute('aria-hidden','true');button.prepend(badge);button.title='Tutor de '+groups.map(g=>g.grupo).join(', ');button.setAttribute('aria-label',name+', tutor');}
+
  function suggest(type){
   const input=host.querySelector('#scheduleQuery'),q=norm(input.value),entry=cache.get(type),selected=document.getElementById('period')?.value;
   const names=type==='grupos'?academic.groups.map(g=>g.grupo):(entry&&(!selected||entry.period===selected)?entry.pages.map(p=>p.name):[]);
   const unique=[...new Set(names)].filter(n=>q.split(' ').every(t=>norm(n).includes(t))).sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
   const container=host.querySelector('#scheduleSuggestions');container.className='schedule-suggestions';container.replaceChildren();
-  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=name;b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
+  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
  }
  // Una sola extracción a la vez; consultas anteriores nunca sustituyen la vista vigente.
  let queue=Promise.resolve();
@@ -79,11 +91,11 @@ window.DIN_SCHEDULE=(()=>{
     const entry=await documentFor(type,notice);if(token!==serial)return;
     const exact=entry.pages.filter(p=>norm(p.name).replace(/\s/g,'')===q.replace(/\s/g,''));
     const matches=exact.length?exact:entry.pages.filter(p=>q.split(' ').every(t=>norm(p.name).includes(t)));
-    const names=[...new Set(matches.map(p=>p.name))];
+    const names=[...new Set(matches.map(p=>p.name))].sort(DIN.naturalOrder);
     notice(names.length?names.length+' coincidencia(s) · Periodo '+entry.period+' · Fuente verificada en Drive.':'No se encontró un horario con ese nombre o grupo.');
     if(names.length===1){await show(entry,matches,token);return;}
     const container=host.querySelector('#scheduleMatches');
-    names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-choice';b.textContent=name;b.onclick=()=>search(type,name);container.append(b);});
+    names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-choice';b.textContent=name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>search(type,name);container.append(b);});
    }catch(e){notice(e.message||'No se pudo consultar el horario. Intenta nuevamente.');}
   });
  }
@@ -117,9 +129,9 @@ window.DIN_SCHEDULE=(()=>{
  async function teacherProfile(entry,name,target,token){
   target.className='teacher-profile';target.textContent='Consultando directorio del profesor…';
   let record=null,warning='';
-  try{const d=await window.DIN_REMOTE.request({action:'directory'});if(token!==serial)return;if(d.period===entry.period&&d.pdfVersion===entry.version){const matches=d.rows.filter(r=>norm(r.nombre_pdf)===norm(name));if(matches.length===1)record=matches[0];warning=d.warning||'';}else warning='El directorio no corresponde al PDF vigente.';}catch{warning='No se pudo consultar el directorio. El horario de clases se muestra por separado.';}
+  try{const d=await directoryFor(entry);if(token!==serial)return;if(d.period===entry.period&&d.pdfVersion===entry.version){const matches=d.rows.filter(r=>norm(r.nombre_pdf)===norm(name));if(matches.length===1)record=matches[0];warning=d.warning||'';}else warning='El directorio no corresponde al PDF vigente.';}catch{warning='No se pudo consultar el directorio. El horario de clases se muestra por separado.';}
   if(token!==serial)return;
-  const aliases=[name,record?.nombre,record?.nombre_tutor].filter(Boolean).map(norm),groups=academic.period?.id_periodo===entry.period?academic.groups.filter(g=>aliases.includes(norm(g.tutor))):[];
+  const groups=tutorGroups(entry,name);
   const email=record?.correo||groups.map(g=>g.correo).find(v=>/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(v||''));
   target.innerHTML=`<h4>${esc(record?.nombre||name)}</h4><p><strong>Categoría:</strong> ${esc(record?.categoria||'Pendiente de captura')}</p>${groups.length?`<p class="tutor-badge">Tutor de ${groups.map(g=>esc(g.grupo)).join(', ')}</p>`:''}<p><strong>Correo:</strong> ${email?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'Pendiente de captura'}</p><div><strong>Horario laboral:</strong>${workHoursHtml(record)}</div>${warning?`<p role="status">${esc(warning)}</p>`:''}<h4>Horario de clases</h4>`;
  }

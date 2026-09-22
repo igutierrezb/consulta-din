@@ -75,7 +75,10 @@ function visits_(record){
  const lock=LockService.getScriptLock();lock.waitLock(3000);
  try{const p=PropertiesService.getScriptProperties(),raw=p.getProperty('DIN_VISITS'),value=raw?JSON.parse(raw):{count:0,since:new Date().toISOString()};
   if(!Number.isSafeInteger(value.count)||value.count<0)throw Error('Contador temporalmente no disponible.');
-  if(record&&value.count<Number.MAX_SAFE_INTEGER){value.count++;p.setProperty('DIN_VISITS',JSON.stringify(value));}
-  return {ok:true,count:value.count,since:value.since};
+  const month=Utilities.formatDate(new Date(),'America/Mexico_City','yyyy-MM');
+  if(value.month!==month){value.month=month;value.monthCount=0;value.monthSince=new Date().toISOString();}
+  if(!Number.isSafeInteger(value.monthCount)||value.monthCount<0)throw Error('Contador mensual temporalmente no disponible.');
+  if(record&&value.count<Number.MAX_SAFE_INTEGER){value.count++;value.monthCount++;p.setProperty('DIN_VISITS',JSON.stringify(value));}
+  return {ok:true,count:value.count,since:value.since,month:value.month,monthCount:value.monthCount,monthSince:value.monthSince};
  }finally{lock.releaseLock();}
 }

@@ -84,7 +84,7 @@ Referencias: [Apps Script](https://developers.google.com/apps-script/guides/web)
 
 ### Mapa del campus y horario laboral diario
 
-El acceso al mapa aparece junto a «Un lugar para aprender». La imagen oficial se conserva en `campus-uteq.jpg`; `campus.js` añade áreas accesibles por ratón, teclado y botones para NANO/H1, H, I, F, G, CIC 4.0, PIDET y laboratorios D/E. Cada edificio consulta el catálogo vigente, sus grupos y plantas. D/E permanecen como referencias hasta tener catálogo y planos publicados.
+El acceso al mapa aparece junto a «Un lugar para aprender». La imagen oficial se conserva en `campus-uteq.jpg`; `campus.js` añade áreas accesibles por ratón, teclado y botones para Nano (clave visible N), H, I, F, G, CIC 4.0, PIDET y laboratorios 7E-E/4E-E. Cada edificio consulta el catálogo vigente, sus grupos y plantas. Los dos laboratorios permanecen como referencias hasta tener catálogo y planos publicados.
 
 La fecha bajo «Datos actualizados» proviene de la versión académica publicada, nunca del reloj del visitante. Si no se puede verificar, aparece como no disponible. Tutores muestra todos al entrar y permite filtrar después.
 
@@ -92,5 +92,13 @@ El directorio acepta PROFESOR, CORREO ELECTRÓNICO, CATEGORÍA, ENT1/SAL1, ENT2/
 
 ### Visitas y resumen de tutorías
 
-El pie muestra un contador agregado de cargas de la página, desde su instalación; no representa personas únicas ni visitas históricas. `visits_` persiste únicamente cantidad y fecha inicial en DIN_VISITS, con bloqueo para evitar incrementos perdidos. No almacena IP ni cuenta del visitante. Su falla no afecta los módulos académicos.
+El pie muestra un contador agregado de cargas de la página, desde su instalación; no representa personas únicas ni visitas históricas. `visits_` conserva en DIN_VISITS el total histórico, fecha inicial, mes vigente, cantidad mensual y fecha de inicio de la medición mensual. Usa el mes natural de America/Mexico_City y un bloqueo para evitar incrementos perdidos. Al cambiar de mes reinicia solo el mensual; al actualizar conserva el total existente. El primer mes cuenta desde la activación, sin reconstruir visitas anteriores. No almacena IP ni cuenta del visitante. Su falla no afecta los módulos académicos.
 Las tarjetas de grupo muestran cuatrimestre y tutor cuando están capturados; los grupos sin tutor permanecen visibles, omitiendo tutores ficticios o pendientes. En Periodo, el resumen administrativo enumera grupos con/sin tutor y aula y desglosa por carrera/cuatrimestre. El resumen corresponde al borrador del periodo seleccionado.
+
+### Navegación y mantenimiento (septiembre 2026)
+
+Mapa del campus concentra edificios, plantas y aulas. Los edificios nuevos del catálogo aparecen también como botones, sin inventar su posición en la imagen. Se conservan IDs y planos originales; los nombres Nano, Laboratorio 7E-E y Laboratorio 4E-E son equivalencias de presentación. Grupos, docentes, tutores y catálogos se ordenan de forma natural. El distintivo ♟ identifica tutorías vigentes mediante nombres completos equivalentes o la vinculación explícita del directorio.
+
+Calendario Escolar y Directorio de Servicios Escolares enlazan a la universidad. El mensaje de ayuda remite al jefe de unidad y conserva una sola referencia de autoría. Las asignaciones puntuales siguen editándose en Asignar aulas y solo llegan a la consulta al publicar el borrador; no requieren sustituir mapas ni Excel.
+
+Para activar el contador mensual, actualizar Servicio.gs en Apps Script y la versión del despliegue público conservando su URL. Para aplicar el orden y nombres del panel, actualizar AdminPanel.html y la versión del despliegue administrativo. Subir los archivos al repositorio por sí solo no actualiza esos despliegues.

@@ -15,11 +15,11 @@
   const periods=(data.PERIODOS||[]).filter(p=>active(p.activo));
   const period=unique(periods,'id_periodo',periodId);
   const allGroups=(data.GRUPOS||[]).filter(g=>period&&str(g.periodo)===str(period.id_periodo));
-  const groups=allGroups.filter(g=>!Object.hasOwn(g,'activo')||active(g.activo));
-  const buildings=(data.EDIFICIOS||[]).filter(b=>active(b.activo));
+  const groups=allGroups.filter(g=>!Object.hasOwn(g,'activo')||active(g.activo)).sort((a,b)=>naturalOrder(a.grupo,b.grupo));
+  const buildings=(data.EDIFICIOS||[]).filter(b=>active(b.activo)).sort((a,b)=>naturalOrder(buildingLabel(a),buildingLabel(b)));
   function building(code){const matches=(data.EDIFICIOS||[]).filter(b=>[b.id_edificio,b.nombre,b.nombre_completo].some(v=>norm(v)===norm(code)));return matches.length===1&&active(matches[0].activo)?matches[0]:null;}
   const allRooms=data.AULAS||[];
-  const rooms=allRooms.filter(r=>active(r.activo)&&building(r.edificio)&&unique(allRooms,'id_aula',r.id_aula));
+  const rooms=allRooms.filter(r=>active(r.activo)&&building(r.edificio)&&unique(allRooms,'id_aula',r.id_aula)).sort((a,b)=>naturalOrder(buildingLabel(building(a.edificio)),buildingLabel(building(b.edificio)))||floorOrder(a.planta,b.planta)||naturalOrder(roomLabel(a),roomLabel(b)));
   const issues=[];
   const same=(a,b)=>norm(a).replace(/\s/g,'')===norm(b).replace(/\s/g,'');
   const floor=v=>norm(v).replace(/^planta /,'');
@@ -61,6 +61,11 @@
   return {periods,period,groups,buildings,rooms,assignments,issues,building,placements,geometry,roomLabel};
  }
  function hasAssignedTutor(value){const name=String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');return !!name&&!['sin tutor','sin tutora','sin asignar','no asignado','no asignada','pendiente','pendiente de asignacion','pendiente de captura','fusion','n/a','na','ninguno','ninguna','0','-','—'].includes(name);}
- const api={hasTutor:hasAssignedTutor,str,norm,active,esc,unique,objects,model};
+function displayBuildingName(value){const name=String(value??'').trim(),key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');if(['n','h1','nano','nanoh1','ednanoh1','edificionano','edificionanoh1'].includes(key))return 'Nano';if(['d','laboratoriod','7ee','laboratorio7ee'].includes(key))return 'Laboratorio 7E-E';if(['e','laboratorioe','4ee','laboratorio4ee'].includes(key))return 'Laboratorio 4E-E';return name;}
+function naturalOrder(a,b){return String(a??'').localeCompare(String(b??''),'es',{numeric:true,sensitivity:'base'});}
+function floorOrder(a,b){const name=v=>String(v??'').toLowerCase().replace(/^planta /,'');const rank=v=>name(v)==='baja'?0:name(v)==='alta'?1:2;return rank(a)-rank(b)||naturalOrder(a,b);}
+
+ const buildingLabel=b=>displayBuildingName(b?.nombre_completo||b?.nombre||b?.id_edificio||'');
+ const api={buildingLabel,displayBuildingName,naturalOrder,floorOrder,hasTutor:hasAssignedTutor,str,norm,active,esc,unique,objects,model};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DIN=api;
 })(typeof window==='undefined'?this:window);
