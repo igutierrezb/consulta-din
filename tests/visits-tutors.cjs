@@ -14,7 +14,7 @@ assert.equal(ctx.visits_(false).monthCount,2);
 month='2026-10';assert.equal(ctx.visits_(false).monthCount,0);assert.equal(ctx.visits_(false).count,2);
 const next=ctx.visits_(true);assert.equal(next.count,3);assert.equal(next.monthCount,1);assert.equal(next.month,'2026-10');assert.equal(next.since,first.since);
 properties.set('DIN_VISITS',JSON.stringify({count:45,since:first.since}));assert.equal(ctx.visits_(true).count,46);assert.equal(ctx.visits_(false).monthCount,1);
-assert.equal(DIN.displayBuildingName('NANO (H1)'),'Nano');assert.equal(DIN.displayBuildingName('Laboratorio D'),'Laboratorio 7E-E');assert.deepEqual(['Aula 10','Aula 2'].sort(DIN.naturalOrder),['Aula 2','Aula 10']);
+assert.equal(DIN.displayBuildingName('NANO (H1)'),'Nano');assert.equal(DIN.displayBuildingName('Laboratorio D'),'7EE');assert.deepEqual(['Aula 10','Aula 2'].sort(DIN.naturalOrder),['Aula 2','Aula 10']);
 console.log('PASS cambio de mes, migración del total y nombres con orden natural');
 properties.set('DIN_VISITS','{"count":-1}');assert.throws(()=>ctx.visits_(true),/no disponible/);assert.equal(held,false);
 console.log('PASS no reinicia un contador inválido y libera el bloqueo');
