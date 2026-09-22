@@ -4,7 +4,7 @@ const SHEETS=['PERIODOS','GRUPOS','EDIFICIOS','AULAS','ASIGNACION_AULAS'];
 const REQUIRED={PERIODOS:['id_periodo','nombre','activo'],GRUPOS:['id_grupo','grupo','periodo','tutor'],EDIFICIOS:['id_edificio','nombre','activo'],AULAS:['id_aula','edificio','planta','activo'],ASIGNACION_AULAS:['periodo','turno','activo']};
 const {str,norm,esc,active}=DIN;
 const $=id=>document.getElementById(id);
-let sourceIssues=[];
+let sourceIssues=[],loadedRevision=null,revisionCheckAt=0,revisionChecking=false;
 let data=null, model=null, mode='groups', busy=false, currentMap=null, chosenRoom=null, scale=1, opener=null;
 function loadLegacySheet(sheet){
  return new Promise((resolve,reject)=>{
@@ -31,9 +31,9 @@ function refreshModel(id){
 async function start(){
  if(busy)return;busy=true;if(['profesores','grupos'].includes(mode))DIN_SCHEDULE.mount(mode,$('horarios'));$('refresh').disabled=true;$('period').disabled=true;$('connection').textContent='Conectando…';$('dataUpdated').textContent='';
  const selected=$('period').value;data=null;model=null;$('results').innerHTML=empty('Consultando la información','Un momento, estamos leyendo la base académica.');$('status').textContent='Actualizando datos…';$('count').textContent='';
- if($('mapDialog').open)$('mapDialog').close();
+ if($('mapDialog').open)$('mapDialog').close();if($('campusDialog').open)$('campusDialog').close();
  try{
-  const snapshot=await DIN_SOURCE.load(SHEETS,loadLegacySheet);data=snapshot.data;sourceIssues=snapshot.issues; window.DIN_PLANOS=snapshot.plans||window.DIN_PLANOS;
+  const snapshot=await DIN_SOURCE.load(SHEETS,loadLegacySheet);data=snapshot.data;loadedRevision=snapshot.revision;sourceIssues=snapshot.issues; window.DIN_PLANOS=snapshot.plans||window.DIN_PLANOS;
   const periods=data.PERIODOS.filter(p=>active(p.activo));$('period').innerHTML=periods.length?periods.map(p=>`<option value="${esc(p.id_periodo)}">${esc(p.nombre)}</option>`).join(''):'<option value="">Sin periodo activo</option>';
   if(periods.some(p=>str(p.id_periodo)===selected))$('period').value=selected;
   $('period').disabled=!periods.length;refreshModel($('period').value);$('connection').textContent=snapshot.issues.length?'Información parcial':'Datos actualizados';  window.dispatchEvent(new CustomEvent('din-data',{detail:{groups:model.groups,period:model.period}}));$('connection').title='Consultados: '+new Date().toLocaleString('es-MX');const updated=new Date(snapshot.updated||'');$('dataUpdated').textContent=Number.isFinite(updated.getTime())?'Actualización: '+updated.toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}):'Fecha de actualización no disponible';
@@ -45,11 +45,11 @@ function groupCard(g){
  const initials=str(g.tutor).split(/\s+/).slice(0,2).map(w=>w[0]).join('');
  return `<article class="group-card"><div class="card-top"><h3 class="code">${esc(g.grupo)}</h3><span class="badge">${g.cuatrimestre?esc(g.cuatrimestre)+'º cuatrimestre':'Grupo'}</span></div><p class="career">${esc(g.ingenieria)}${g.salida_lateral?' · '+esc(g.salida_lateral):''}</p>${DIN.hasTutor(g.tutor)?`<div class="person"><span class="avatar" aria-hidden="true">${esc(initials||'—')}</span><div><small>TUTOR / TUTORA</small><strong>${esc(g.tutor)}</strong></div></div>`:''}<div class="fields"><div class="field"><small>GENERACIÓN</small>${esc(g.generacion||'—')}</div><div class="field"><small>CORREO</small>${validEmail?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'Correo pendiente de captura'}</div></div>${placements.length?placements.map(p=>`<div class="placement"><div class="placement-head"><div><strong>${esc(DIN.buildingLabel(p.building))}</strong><p>Planta ${esc(norm(p.room.planta).replace(/^planta /,''))} · ${esc(model.roomLabel(p.room))}</p></div><span class="turn">${esc(p.assignment.turno||'Sin turno registrado')}</span></div>${mapButton(p.room,'Ubicar mi aula')} </div>`).join(''):'<p class="pending">Aula pendiente de asignación para este periodo.</p>'}</article>`;
 }
-function mapButton(room,label='Encuentra tu salón en el plano'){
+function mapButton(room,label='Localiza tu salón en el plano'){
  const geo=model.geometry(room);return geo?`<button class="map-button" type="button" data-room="${esc(room.id_aula)}">${label}<span aria-hidden="true">↗</span></button>`:'<p class="pending">Ubicación registrada; plano pendiente de configurar.</p>';
 }
 
-function locationGuide(g){const places=model.placements(g);return '<section class="location-guide"><h3>'+esc(g.grupo)+' · Encuentra tu salón</h3>'+(places.length?places.map(p=>{const geo=model.geometry(p.room);return '<article><ol class="location-steps"><li><small>1 · Edificio</small><strong>'+esc(DIN.buildingLabel(p.building))+'</strong></li><li><small>2 · Planta</small><strong>'+esc(p.room.planta)+'</strong></li><li><small>3 · Aula</small><strong>'+esc(model.roomLabel(p.room))+'</strong></li></ol><p>Dirígete a '+esc(DIN.buildingLabel(p.building))+', busca la planta '+esc(norm(p.room.planta).replace(/^planta /,''))+' y localiza '+esc(model.roomLabel(p.room))+'. '+(geo?'El aula aparece resaltada en amarillo en el plano.':'El croquis de esta aula está pendiente de configurar.')+'</p><p class="hint">Turno: '+esc(p.assignment.turno||'No indicado')+'</p><button class="campus-link" type="button" data-campus-building="'+esc(p.building.id_edificio)+'">Ver edificio en el campus</button>'+mapButton(p.room,'Ampliar plano y encontrar mi salón')+(geo?miniPlan(geo.plan,new Set([str(p.room.id_aula)])):'')+'</article>';}).join(''):'<p>Aula pendiente de asignación. No hay una ubicación vigente para este grupo.</p>')+'</section>';}
+function locationGuide(g){const places=model.placements(g);return '<section class="location-guide"><h3>'+esc(g.grupo)+' · Localiza tu salón</h3>'+(places.length?places.map(p=>{const geo=model.geometry(p.room);return '<article><ol class="location-steps"><li><small>1 · Edificio</small><strong>'+esc(DIN.buildingLabel(p.building))+'</strong></li><li><small>2 · Planta</small><strong>'+esc(p.room.planta)+'</strong></li><li><small>3 · Aula</small><strong>'+esc(model.roomLabel(p.room))+'</strong></li></ol><p>Dirígete a '+esc(DIN.buildingLabel(p.building))+', busca la planta '+esc(norm(p.room.planta).replace(/^planta /,''))+' y localiza '+esc(model.roomLabel(p.room))+'. '+(geo?'El aula aparece resaltada en amarillo en el plano.':'El croquis de esta aula está pendiente de configurar.')+'</p><p class="hint">Turno: '+esc(p.assignment.turno||'No indicado')+'</p><button class="campus-link" type="button" data-campus-building="'+esc(p.building.id_edificio)+'">Ver edificio en el campus</button>'+mapButton(p.room,'Ampliar plano y encontrar mi salón')+(geo?miniPlan(geo.plan,new Set([str(p.room.id_aula)])):'')+'</article>';}).join(''):'<p>Aula pendiente de asignación. No hay una ubicación vigente para este grupo.</p>')+'</section>';}
 $('results').addEventListener('click',e=>{const b=e.target.closest('[data-campus-building]');if(b)window.DIN_CAMPUS?.openBuilding(b.dataset.campusBuilding);});
 
 function roomCard(r){return `<article class="room-result"><h3>${esc(model.roomLabel(r))}</h3><p>${esc(DIN.buildingLabel(model.building(r.edificio)))} · Planta ${esc(norm(r.planta))}<br>${r.capacidad?'Capacidad: '+esc(r.capacidad)+' personas':''}${r.observaciones?'<br>'+esc(r.observaciones):''}</p>${mapButton(r)}</article>`;}
@@ -59,7 +59,7 @@ function render(){
  if(!model)return;
  const query=norm($('search').value);$('clear').hidden=!query;
  if(mode==='profesores'||mode==='grupos')return;
- $('resultTitle').textContent=mode==='locate'?'Encuentra tu salón':mode==='groups'?'Grupos del periodo':mode==='tutors'?'Tutores y sus grupos':'Edificios División Industrial';
+ $('resultTitle').textContent=mode==='locate'?'Localiza tu salón':mode==='groups'?'Grupos del periodo':mode==='tutors'?'Tutores y sus grupos':'Edificios División Industrial';
  if(mode==='rooms'){renderBuildings(query);return;}
  const groups=matchingGroups(query);
  if(['groups','locate'].includes(mode)){$('count').textContent=groups.length+' grupos';$('results').innerHTML=groups.length?'<div class="group-picker" aria-label="Selecciona tu grupo">'+groups.map(g=>'<button type="button" class="group-pick '+DIN.groupTone(g,model.groups)+'" data-group="'+esc(g.id_grupo)+'">'+DIN.groupTile(g,model.groups)+'</button>').join('')+'</div><div id="groupDetail" class="group-detail"></div>':empty('Sin coincidencias','Prueba otro código, nombre, carrera o correo.');return;}
@@ -150,3 +150,8 @@ setMode('groups');start();
 // Revalidación periódica; cada módulo informa su disponibilidad.
 setInterval(()=>{if(!document.hidden)start();},300000);
 
+
+// Revisa solo la revisión al regresar de administración; recarga datos únicamente si cambió.
+async function refreshPublishedVersion(){if(document.hidden||busy||revisionChecking||!loadedRevision||Date.now()-revisionCheckAt<5000)return;revisionCheckAt=Date.now();revisionChecking=true;try{const r=await DIN_SOURCE.rpc({action:'manifest'});if(r.revision&&r.revision!==loadedRevision)await start();}catch{}finally{revisionChecking=false;}}
+window.addEventListener('focus',refreshPublishedVersion);document.addEventListener('visibilitychange',refreshPublishedVersion);
+window.DIN_LOCATE_GROUP=name=>{setMode('locate');const g=model?.groups.find(g=>norm(g.grupo)===norm(name));if(g){$('groupDetail').innerHTML=locationGuide(g);$('groupDetail').scrollIntoView({block:'start',behavior:'smooth'});}};

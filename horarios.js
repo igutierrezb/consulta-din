@@ -109,7 +109,7 @@ window.DIN_SCHEDULE=(()=>{
     notice(names.length?names.length+' coincidencia(s) · Periodo '+entry.period+' · Fuente verificada en Drive.':'No se encontró un horario con ese nombre o grupo.');
     if(names.length===1){await show(entry,matches,token);return;}
     const container=host.querySelector('#scheduleMatches');
-    names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-choice';b.textContent=type==='profesores'?teacherLabel(entry,name):name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>search(type,name);container.append(b);});
+    names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-choice';b.textContent=type==='profesores'?teacherLabel(entry,name):name;if(type==='grupos'){const g=academic.groups.find(g=>g.grupo===name);if(g){b.className='group-pick '+DIN.groupTone(g,academic.groups);b.innerHTML=DIN.groupTile(g,academic.groups);}}else tutorBadge(b,entry,name);b.onclick=()=>search(type,name);container.append(b);});
    }catch(e){notice(e.message||'No se pudo consultar el horario. Intenta nuevamente.');}
   });
  }
@@ -120,7 +120,7 @@ window.DIN_SCHEDULE=(()=>{
    if(token!==serial)return;
    const section=document.createElement('section');section.className='selected-schedule';
    section.innerHTML=`<h4>${esc(match.name)}</h4><p>Horario correspondiente · Página ${match.page} · Usa los controles para ampliar.</p><div class="schedule-zoom"><button type="button" data-zoom="minus" aria-label="Reducir horario">−</button><button type="button" data-zoom="fit">Ajustar</button><button type="button" data-zoom="plus" aria-label="Ampliar horario">+</button><button type="button" data-fullscreen>Pantalla completa</button></div><div class="pdf-scroll" tabindex="0" role="region" aria-label="Horario de ${esc(match.name)}"><canvas role="img" aria-label="Horario de ${esc(match.name)}. Transcripción disponible debajo."></canvas></div><details><summary>Texto del horario (orden extraído del documento)</summary><pre>${esc(match.text)}</pre></details>`;
-   target.append(section);const page=await entry.pdf.getPage(match.page),canvas=section.querySelector('canvas'),scroller=section.querySelector('.pdf-scroll');let zoom=1,rendering=null;
+   if(kind==='grupos'){const locate=document.createElement('button');locate.type='button';locate.className='campus-link schedule-locate';locate.textContent='Localiza el edificio y tu salón en el mapa';locate.onclick=()=>window.DIN_LOCATE_GROUP?.(match.name);section.querySelector('h4').after(locate);}target.append(section);const page=await entry.pdf.getPage(match.page),canvas=section.querySelector('canvas'),scroller=section.querySelector('.pdf-scroll');let zoom=1,rendering=null;
    async function draw(){
     if(rendering){rendering.cancel();try{await rendering.promise;}catch{}}
     const viewport=page.getViewport({scale:1}),width=Math.max(280,scroller.clientWidth-2)*zoom,ratio=Math.min(window.devicePixelRatio||1,2),view=page.getViewport({scale:width/viewport.width});
