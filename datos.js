@@ -66,6 +66,10 @@ function naturalOrder(a,b){return String(a??'').localeCompare(String(b??''),'es'
 function floorOrder(a,b){const name=v=>String(v??'').toLowerCase().replace(/^planta /,'');const rank=v=>name(v)==='baja'?0:name(v)==='alta'?1:2;return rank(a)-rank(b)||naturalOrder(a,b);}
 
  const buildingLabel=b=>displayBuildingName(b?.nombre_completo||b?.nombre||b?.id_edificio||'');
- const api={buildingLabel,displayBuildingName,naturalOrder,floorOrder,hasTutor:hasAssignedTutor,str,norm,active,esc,unique,objects,model};
+
+ function groupTile(g,groups){const careers=[...new Set(groups.map(x=>str(x.ingenieria)))].sort(naturalOrder);return '<strong>'+esc(g.grupo)+'</strong><small class="group-pick-career">'+esc(g.ingenieria||'Carrera pendiente')+'</small><small class="group-pick-exit">'+esc(g.salida_lateral||'')+'</small>'+(g.cuatrimestre?'<small class="group-pick-term">'+esc(g.cuatrimestre)+'º cuatrimestre</small>':'')+(hasAssignedTutor(g.tutor)?'<small class="group-pick-tutor">Tutor: '+esc(g.tutor)+'</small>':'');}
+ function groupTone(g,groups){return 'career-tone-'+([...new Set(groups.map(x=>str(x.ingenieria)))].sort(naturalOrder).indexOf(str(g.ingenieria))%8);}
+
+ const api={groupTile,groupTone,buildingLabel,displayBuildingName,naturalOrder,floorOrder,hasTutor:hasAssignedTutor,str,norm,active,esc,unique,objects,model};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DIN=api;
 })(typeof window==='undefined'?this:window);

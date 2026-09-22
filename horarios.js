@@ -49,7 +49,7 @@ window.DIN_SCHEDULE=(()=>{
   }catch(e){await pdf.loadingTask.destroy();throw e;}
  }
  function mount(type,element,options={}){
-  const token=++serial;kind=type;host=element;
+  if(options.reset)queries[type]='';const token=++serial;kind=type;host=element;
   host.innerHTML=`<div class="schedule-panel"><h3>${type==='profesores'?'Horarios de maestros':'Horarios por grupo'}</h3><form id="scheduleForm"><label for="scheduleQuery">${type==='profesores'?'Nombre del maestro':'Código del grupo'}</label><div class="schedule-search"><input id="scheduleQuery" type="search" required maxlength="120" autocomplete="off" placeholder="${type==='profesores'?'Por ejemplo: Abel Martínez':'Por ejemplo: LIMA002'}" value="${esc(queries[type])}"><button class="primary" type="submit">Buscar horario</button></div></form><p id="scheduleStatus" role="status">Consultando disponibilidad en Drive…</p><div id="scheduleSuggestions" aria-label="Sugerencias"></div><div id="scheduleMatches"></div><div id="schedulePage"></div></div>`;
   host.querySelector('form').onsubmit=e=>{e.preventDefault();queries[type]=host.querySelector('input').value;search(type,queries[type]);};
   host.querySelector('input').oninput=()=>{++serial;queries[type]=host.querySelector('input').value;host.querySelector('#scheduleMatches').replaceChildren();host.querySelector('#schedulePage').replaceChildren();suggest(type);};
@@ -89,8 +89,8 @@ window.DIN_SCHEDULE=(()=>{
   const input=host.querySelector('#scheduleQuery'),q=norm(input.value),entry=cache.get(type),selected=document.getElementById('period')?.value;
   const names=type==='grupos'?academic.groups.map(g=>g.grupo):(entry&&(!selected||entry.period===selected)?entry.pages.map(p=>p.name):[]);
   const unique=[...new Set(names)].filter(n=>q.split(' ').every(t=>norm(n).includes(t))).sort((a,b)=>DIN.naturalOrder(type==='profesores'?teacherLabel(entry,a):a,type==='profesores'?teacherLabel(entry,b):b));
-  const container=host.querySelector('#scheduleSuggestions');container.className='schedule-suggestions';container.replaceChildren();
-  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=type==='profesores'?teacherLabel(entry,name):name;if(type==='profesores')tutorBadge(b,entry,name);b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
+  const container=host.querySelector('#scheduleSuggestions');container.className=type==='grupos'?'schedule-suggestions group-picker':'schedule-suggestions';container.replaceChildren();
+  unique.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='schedule-chip';b.textContent=type==='profesores'?teacherLabel(entry,name):name;if(type==='grupos'){const g=academic.groups.find(g=>g.grupo===name);if(g){b.className='group-pick '+DIN.groupTone(g,academic.groups);b.innerHTML=DIN.groupTile(g,academic.groups);}}else tutorBadge(b,entry,name);b.onclick=()=>{input.value=name;queries[type]=name;search(type,name);};container.append(b);});
  }
  // Una sola extracción a la vez; consultas anteriores nunca sustituyen la vista vigente.
  let queue=Promise.resolve();
