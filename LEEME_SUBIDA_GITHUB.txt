@@ -1,0 +1,6 @@
+CONSULTA DIN · GITHUB
+
+Copia EL CONTENIDO de esta carpeta a la raíz del repositorio consulta-din.
+Reemplaza index.html y admin.html. Agrega los archivos din-* / lite-* y horarios-publicados/2026-3/manifest.js.
+NO borres config.js, planos.js, campus-uteq.jpg, legacy-schedules, vendor ni los archivos históricos.
+Lee ../INSTALACION.md y ../MATRIZ_ARCHIVOS.md antes de integrar a main.
