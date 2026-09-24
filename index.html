@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#0b5e75">
   <meta name="description" content="Consulta DIN: grupos, tutores, horarios, aulas y croquis de la División Industrial.">
   <title>Consulta DIN</title>
-  <script src="compat-v4.js?v=20260924-1"></script>
-  <link rel="stylesheet" href="estilos-v4.css?v=20260924-1">
+  <script src="compat-v4.js?v=20260924-2"></script>
+  <link rel="stylesheet" href="estilos-v4.css?v=20260924-2">
   <script defer src="config.js"></script>
   <script defer src="planos.js"></script>
-  <script defer src="datos-v4.js?v=20260924-1"></script>
-  <script defer src="source-v4.js?v=20260924-1"></script>
-  <script defer src="legacy-schedules-v4.js?v=20260924-1"></script>
-  <script defer src="horarios-v4.js?v=20260924-1"></script>
-  <script defer src="campus-v4.js?v=20260924-1"></script>
-  <script defer src="app-v4.js?v=20260924-1"></script>
-  <script defer src="visitas-v4.js?v=20260924-1"></script>
+  <script defer src="datos-v4.js?v=20260924-2"></script>
+  <script defer src="source-v4.js?v=20260924-2"></script>
+  <script defer src="legacy-schedules-v4.js?v=20260924-2"></script>
+  <script defer src="horarios-v4.js?v=20260924-2"></script>
+  <script defer src="campus-v4.js?v=20260924-2"></script>
+  <script defer src="app-v4.js?v=20260924-2"></script>
+  <script defer src="visitas-v4.js?v=20260924-2"></script>
 </head>
 <body>
   <a class="skip" href="#consulta">Saltar a la consulta</a>
@@ -51,8 +51,17 @@
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
-        <div class="campus-card c1">F</div><div class="campus-card c2">G</div><div class="campus-card c3">I</div>
-        <div class="campus-card c4">Nano</div><div class="campus-card c5">PIDET</div><div class="campus-card c6">CIC 4.0</div>
+        <svg class="hero-campus-map" viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg">
+          <path class="hero-campus-road" d="M303 29 C298 68 292 91 281 110 C260 146 247 177 237 204 C226 233 240 264 287 307"/>
+          <path class="hero-campus-road secondary" d="M86 157 C126 174 160 184 205 190 C248 196 286 181 333 170"/>
+          <g class="hero-building pidet" transform="translate(277 24) rotate(-9)"><rect width="112" height="44" rx="9"/><text x="56" y="27">PIDET</text></g>
+          <g class="hero-building cic" transform="translate(267 81) rotate(-9)"><rect width="118" height="44" rx="9"/><text x="59" y="27">CIC 4.0</text></g>
+          <g class="hero-building nano" transform="translate(58 137) rotate(-9)"><rect width="104" height="46" rx="9"/><text x="52" y="28">Nano</text></g>
+          <g class="hero-building h" transform="translate(112 187) rotate(-9)"><rect width="92" height="44" rx="9"/><text x="46" y="27">H</text></g>
+          <g class="hero-building g" transform="translate(286 146) rotate(-9)"><rect width="86" height="48" rx="9"/><text x="43" y="29">G</text></g>
+          <g class="hero-building i" transform="translate(164 236) rotate(-9)"><rect width="92" height="46" rx="9"/><text x="46" y="28">I</text></g>
+          <g class="hero-building f" transform="translate(287 278) rotate(-9)"><rect width="88" height="46" rx="9"/><text x="44" y="28">F</text></g>
+        </svg>
       </div>
     </section>
 

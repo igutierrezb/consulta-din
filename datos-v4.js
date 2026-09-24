@@ -19,7 +19,21 @@
     function roomById(id){var m=rooms.filter(function(r){return str(r.id_aula)===str(id);});return m.length===1?m[0]:null;}
     function groupById(id){var m=groups.filter(function(g){return str(g.id_grupo)===str(id);});return m.length===1?m[0]:null;}
     function placements(g){return assignments.filter(function(a){return str(a.id_grupo)===str(g.id_grupo);}).map(function(a){var r=roomById(a.id_aula),b=r&&building(r.edificio);return r&&b?{assignment:a,room:r,building:b}:null;}).filter(Boolean);}
-    function geometry(room){var b=building(room.edificio);if(!b)return null;var f=norm(room.planta).replace(/^planta /,'');var p=plans.find(function(x){return str(x.edificio)===str(b.id_edificio)&&norm(x.planta).replace(/^planta /,'')===f;});if(!p)return null;var key=str(room.posicion);var space=(p.spaces||[]).find(function(s){return str(s.roomId)===str(room.id_aula)||str(s.key)===key;});return space?{plan:p,space:space}:null;}
+    function geometry(room){
+      var b=building(room.edificio);if(!b)return null;
+      var f=norm(room.planta).replace(/^planta /,'');
+      var p=plans.find(function(x){return str(x.edificio)===str(b.id_edificio)&&norm(x.planta).replace(/^planta /,'')===f;});if(!p)return null;
+      var spaces=(p.spaces||[]),compact=function(v){return norm(v).replace(/[^a-z0-9]/g,'');},label=roomLabel(room),id=str(room.id_aula),position=str(room.posicion),candidates=[position,label,id];
+      if(id){var parts=id.split('-');if(parts.length)candidates.push(parts[parts.length-1]);}
+      var keys=new Set(candidates.filter(Boolean).map(compact)),matches=spaces.filter(function(s){
+        if(str(s.roomId)===id)return true;
+        if(keys.has(compact(s.key)))return true;
+        if(s.label&&keys.has(compact(s.label)))return true;
+        return false;
+      });
+      if(matches.length!==1&&label){var lk=compact(label);matches=spaces.filter(function(s){return s.kind==='room'&&(compact(s.label)===lk||compact(s.key)===lk);});}
+      return matches.length===1?{plan:p,space:matches[0]}:null;
+    }
     function roomLabel(room){return str(room.nombre||room.salon||room.aula||room.id_aula);}
     function buildingLabel(b){return str(b&&(b.nombre_completo||b.nombre||b.id_edificio));}
     return {periods:periods,period:period,groups:groups,buildings:buildings,rooms:rooms,assignments:assignments,plans:plans,building:building,roomById:roomById,groupById:groupById,placements:placements,geometry:geometry,roomLabel:roomLabel,buildingLabel:buildingLabel};
