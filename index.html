@@ -23,10 +23,11 @@
   <div class="shell topbar-inner">
     <a class="brand" href="./" aria-label="Consulta DIN, inicio">
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 27V12l8 4V9l7 4V5h4v10l5 3v9H4Z"/><path d="M8 21h3v3H8zm6 0h3v3h-3zm6 0h3v3h-3z"/></svg></span>
-      <span><strong>Consulta DIN</strong><small>DIVISIÓN INDUSTRIAL · UTEQ</small></span>
+      <span><strong>Consulta DIN</strong><small>DIVISIÓN INDUSTRIAL · TURNO MATUTINO</small></span>
     </a>
     <div class="top-actions">
       <div class="connection-box"><strong id="connection">Conectando…</strong><small id="updated"></small></div>
+      <a class="admin-link top-admin-link" href="admin.html" aria-label="Abrir Administración"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2c0-3.2 2.6-5.5 7-5.5s7 2.3 7 5.5v2M18.5 6.5l1.5-1.5m-1.5 1.5 1.5 1.5"/></svg></span><span>Administración</span></a>
     </div>
   </div>
 </header>
@@ -52,22 +53,19 @@
     <div class="hero-campus" aria-hidden="true">
       <div class="hero-campus-head"><span>DIVISIÓN INDUSTRIAL</span><strong>Edificios DIN en el campus</strong></div>
       <svg viewBox="0 0 600 420" role="img" aria-label="Distribución esquemática de edificios de la División Industrial inspirada en el mapa del campus">
-        <defs><linearGradient id="routeGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dff7ee" stop-opacity=".65"/><stop offset="1" stop-color="#c0e8df" stop-opacity=".12"/></linearGradient></defs>
-        <path class="campus-gridline" d="M65 358 C160 289 232 248 310 214 C390 179 453 120 525 46"/>
-        <path class="campus-gridline thin" d="M151 378 C238 335 331 316 489 310"/>
-        <path class="campus-gridline thin" d="M288 214 C321 259 345 291 361 333"/>
-        <circle class="campus-node" cx="525" cy="46" r="4"/><circle class="campus-node" cx="442" cy="124" r="4"/><circle class="campus-node" cx="310" cy="214" r="4"/>
         <g class="hero-building pidet"><rect x="455" y="24" width="112" height="48" rx="14"/><text x="511" y="54">PIDET</text></g>
         <g class="hero-building cic"><rect x="392" y="91" width="116" height="48" rx="14"/><text x="450" y="121">CIC 4.0</text></g>
         <g class="hero-building nano"><rect x="90" y="190" width="108" height="48" rx="14"/><text x="144" y="220">NANO</text></g>
         <g class="hero-building h"><rect x="161" y="252" width="118" height="48" rx="14"/><text x="220" y="282">H · Ambiental</text></g>
         <g class="hero-building g"><rect x="405" y="194" width="86" height="46" rx="13"/><text x="448" y="223">G</text></g>
         <g class="hero-building i"><rect x="282" y="298" width="86" height="46" rx="13"/><text x="325" y="327">I</text></g>
-        <g class="hero-building f"><rect x="426" y="329" width="86" height="46" rx="13"/><text x="469" y="358">F</text></g>
+        <g class="hero-building f"><rect x="426" y="314" width="86" height="46" rx="13"/><text x="469" y="343">F</text></g>
+        <g class="hero-building ref"><rect x="337" y="363" width="82" height="38" rx="12"/><text x="378" y="387">7EE</text></g>
+        <g class="hero-building ref"><rect x="476" y="365" width="82" height="38" rx="12"/><text x="517" y="389">4EE</text></g>
         <g class="industrial-mark"><circle cx="91" cy="78" r="31"/><path d="M72 91V72l10 5V68l12 6V61h6v17l10 6v7H72Z"/><path d="M78 84h5m6 0h5m6 0h5"/></g>
-        <text class="campus-caption" x="130" y="73">RUTA DIN</text><text class="campus-caption sub" x="130" y="92">Referencia visual basada en el mapa del campus</text>
+        <text class="campus-caption" x="130" y="73">DIVISIÓN INDUSTRIAL</text><text class="campus-caption sub" x="130" y="92">Turno matutino · referencia espacial simplificada</text>
       </svg>
-      <small>Solo se muestran los edificios utilizados por la División Industrial.</small>
+      <small>Esquema simplificado de los espacios de uso DIN; 7EE y 4EE se mantienen como referencias permanentes.</small>
     </div>
   </section>
 
@@ -109,7 +107,7 @@
 
 <footer class="shell footer">
   <div class="footer-copy"><span>Consulta DIN · División Industrial · Universidad Tecnológica de Querétaro</span><span id="authorLine">Diseño, desarrollo y administración: —</span></div>
-  <div class="footer-tools"><nav><a href="lite.html">Versión ligera</a><a href="admin.html">Administración</a></nav><span id="visitsLine">Contador de visitas en segundo plano</span></div>
+  <div class="footer-tools"><nav><a class="lite-link" href="lite.html"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 5 13h6l-1 9 9-13h-6V2Z"/></svg></span><span>Versión ligera</span></a></nav><span id="visitsLine">Contador de visitas en segundo plano</span></div>
 </footer>
 
 <dialog id="detailDialog" class="detail-dialog">

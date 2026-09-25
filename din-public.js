@@ -1,6 +1,6 @@
 (function(root){'use strict';
 var DIN=root.DIN,$=function(id){return document.getElementById(id);},snapshot=null,model=null,plans=Array.isArray(root.DIN_PLANOS)?root.DIN_PLANOS.slice():[],section='groups',submode='groups',currentPlan=null,currentRoomId='',scale=1,manifest=null,renderToken=0;
-var submodes={groups:[['groups','Grupos']],people:[['professors','Maestros'],['tutors','Tutores']],schedules:[['schedule-professors','🧑‍🏫 Maestros'],['schedule-groups','👥 Grupos'],['schedule-rooms','🏫 Salones']],location:[['locate','📍 Encuentra tu salón'],['campus','🗺️ Mapa del campus']]};
+var submodes={groups:[['groups','Grupos']],people:[['professors','Maestros'],['tutors','Tutores']],schedules:[['schedule-professors','Maestros'],['schedule-groups','Grupos'],['schedule-rooms','Salones']],location:[['locate','Encuentra tu salón'],['campus','Mapa del campus']]};
 function mergePlans(dynamic){dynamic=Array.isArray(dynamic)?dynamic:[];return plans.filter(function(p){return !dynamic.some(function(q){return q.id===p.id||(q.edificio===p.edificio&&DIN.norm(q.planta)===DIN.norm(p.planta));});}).concat(dynamic);}
 function empty(title,text){return '<div class="empty"><strong>'+DIN.esc(title)+'</strong><span>'+DIN.esc(text||'')+'</span></div>';}
 function periodId(){return model&&model.period?model.period.id_periodo:'';}
