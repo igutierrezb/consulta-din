@@ -1,1 +1,5 @@
-(function(){try{var ok=!!(window.Promise&&window.Map&&window.Set&&window.URL&&window.fetch&&document.querySelector&&String.prototype.normalize&&Array.from&&Array.prototype.find&&window.HTMLDialogElement&&HTMLDialogElement.prototype.showModal&&window.Element&&Element.prototype.closest);if(!ok&&!/lite-2027\.html$/i.test(location.pathname)){location.replace(location.pathname.replace(/[^\/]*$/,'')+'lite-2027.html'+location.search);}}catch(e){try{location.replace('lite-2027.html');}catch(_){} }})();
+(function(){'use strict';
+if(!String.prototype.normalize){String.prototype.normalize=function(){return String(this);};}
+if(!Element.prototype.closest){Element.prototype.closest=function(s){var e=this;while(e&&e.nodeType===1){if(e.matches(s))return e;e=e.parentElement;}return null;};}
+if(!window.Promise){document.documentElement.className+=' legacy-no-promise';}
+})();

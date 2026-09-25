@@ -1,9 +1,131 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0c6677"><meta name="description" content="Consulta DIN: grupos, tutores, horarios, salones y croquis de la División Industrial."><title>Consulta DIN</title><script src="din-compat.js"></script><link rel="stylesheet" href="din-2027.css"><script defer src="config.js"></script><script defer src="planos.js"></script><script defer src="din-core.js"></script><script defer src="din-source.js"></script><script defer src="din-schedules.js"></script><script defer src="din-campus.js"></script><script defer src="din-app.js"></script></head><body>
-<a class="skip" href="#consulta">Saltar a la consulta</a><header class="topbar"><div class="wrap topbar-inner"><a class="brand" href="./"><span class="gear">⚙</span><span><strong>DIN</strong><small>DIVISIÓN INDUSTRIAL · UTEQ</small></span></a><div class="top-actions"><div><span id="connection">Conectando…</span><small id="updated"></small></div><a class="admin-link" href="admin.html">Administración ↗</a></div></div></header>
-<main class="wrap"><section class="hero"><div class="hero-copy"><span class="eyebrow">CONSULTA ACADÉMICA</span><h1>Tu información académica,<br><em>en un solo lugar.</em></h1><p>Consulta grupo, tutor, aula, horarios y la ubicación de tus espacios.</p><div class="period-row"><label>Periodo<select id="period" disabled><option>Cargando…</option></select></label><span class="badge">Vigente</span></div><div class="hero-links"><button id="openCampus" class="soft" type="button">Mapa del campus ↗</button><a class="soft" href="https://www.uteq.edu.mx/Alumno/Default.aspx?gI2Sr=251" target="_blank" rel="noopener">Calendario escolar ↗</a></div></div><div class="hero-campus" aria-hidden="true"><svg viewBox="0 0 520 330"><path d="M85 235 C150 210 178 163 250 150 S385 112 442 62" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="18" stroke-linecap="round"/><path d="M190 286 C238 250 292 235 355 230" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="12" stroke-linecap="round"/><g class="bldg pidet"><rect x="366" y="26" width="95" height="48" rx="10"/><text x="414" y="56">PIDET</text></g><g class="bldg cic"><rect x="314" y="88" width="98" height="48" rx="10"/><text x="363" y="118">CIC 4.0</text></g><g class="bldg nano"><rect x="86" y="152" width="92" height="48" rx="10"/><text x="132" y="182">Nano</text></g><g class="bldg h"><rect x="158" y="202" width="72" height="44" rx="10"/><text x="194" y="230">H</text></g><g class="bldg g"><rect x="344" y="164" width="72" height="44" rx="10"/><text x="380" y="192">G</text></g><g class="bldg i"><rect x="238" y="228" width="72" height="44" rx="10"/><text x="274" y="256">I</text></g><g class="bldg f"><rect x="374" y="248" width="72" height="44" rx="10"/><text x="410" y="276">F</text></g></svg><span>Distribución esquemática del campus</span></div></section>
-<section class="stats"><article><strong id="statGroups">—</strong><span>grupos</span></article><article><strong id="statTeachers">—</strong><span>profesores con horario</span></article><article><strong id="statTutors">—</strong><span>tutores</span></article><article><strong id="statBuildings">—</strong><span>edificios</span></article><article><strong id="statRooms">—</strong><span>salones</span></article></section>
-<section id="consulta" class="workspace"><div class="workspace-head"><div><span class="eyebrow dark">CONSULTA</span><h2>¿Qué estás buscando?</h2></div><button id="refresh" class="text-button">↻ Actualizar</button></div><nav class="tabs"><button data-mode="groups" class="active" aria-pressed="true">▤<span>Grupos</span></button><button data-mode="tutors">♙<span>Tutores</span></button><button data-mode="profesores">◷<span>Profesores</span></button><button data-mode="grupos">▦<span>Horario de grupo</span></button><button data-mode="salones">▥<span>Horarios de salones</span></button><button data-mode="locate">⌖<span>Localiza tu salón</span></button></nav><div id="academic"><div class="search-row"><div class="search-box">⌕<input id="search" type="search" autocomplete="off" placeholder="Busca grupo, tutor, carrera o correo…"><button id="clear" hidden>×</button></div><label class="filter">Carrera<select id="career"><option value="">Todas las carreras</option></select></label></div><div id="status" class="status">Cargando información…</div><div class="results-head"><h3 id="resultTitle">Grupos del periodo</h3><span id="count"></span></div><div id="results"></div></div><section id="schedules" hidden></section></section>
-<aside class="help"><span>i</span><p>La consulta muestra la última publicación confirmada. Los cambios de administración permanecen en borrador hasta que se publican.</p></aside></main><footer class="wrap footer"><span>Consulta DIN · División Industrial · UTEQ</span><a href="lite-2027.html">Versión ligera</a></footer>
-<dialog id="mapDialog"><div class="dialog-head"><div><span class="eyebrow dark">CROQUIS</span><h2 id="mapTitle">Plano</h2></div><button id="closeMap" class="close">×</button></div><div class="map-toolbar"><label>Planta<select id="floor"></select></label><div><button id="zoomOut">−</button><button id="zoomReset">Ajustar</button><button id="zoomIn">+</button></div></div><div class="map-scroll"><div id="mapCanvas"></div></div></dialog>
-<dialog id="campusDialog"><div class="dialog-head"><div><span class="eyebrow dark">CAMPUS</span><h2>Mapa del campus</h2></div><button id="closeCampus" class="close">×</button></div><div class="campus-layout"><div><div class="campus-tools"><button id="campusMinus">−</button><button id="campusFit">Ajustar</button><button id="campusPlus">+</button></div><div class="campus-scroll"><div id="campusCanvas"></div></div></div><aside><div id="campusList" class="campus-list"></div><section id="campusInfo" class="campus-info"></section></aside></div></dialog>
-</body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b6675">
+  <meta name="description" content="Consulta DIN: grupos, profesores, tutores, horarios, salones y croquis de la División Industrial de la UTEQ.">
+  <title>Consulta DIN</title>
+  <script src="din-compat.js"></script>
+  <link rel="stylesheet" href="din-final.css">
+  <script defer src="config.js"></script>
+  <script defer src="planos.js"></script>
+  <script defer src="manifest.js"></script>
+  <script defer src="din-core.js"></script>
+  <script defer src="din-source.js"></script>
+  <script defer src="din-schedules.js"></script>
+  <script defer src="din-campus.js"></script>
+  <script defer src="din-public.js"></script>
+</head>
+<body>
+<a class="skip" href="#consulta">Saltar a la consulta</a>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="./" aria-label="Consulta DIN, inicio">
+      <span class="brand-mark">⚙</span>
+      <span><strong>DIN</strong><small>DIVISIÓN INDUSTRIAL · UTEQ</small></span>
+    </a>
+    <div class="top-actions">
+      <div class="connection-box"><strong id="connection">Conectando…</strong><small id="updated"></small></div>
+      <a class="admin-link" href="admin.html">Administración ↗</a>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="hero-copy">
+      <span class="eyebrow">CONSULTA ACADÉMICA</span>
+      <h1 id="heroTitle">Tu información académica,<br><em>en un solo lugar.</em></h1>
+      <p>Consulta grupo, tutor, profesor, aula, horarios y ubicación de tus espacios con una navegación clara, rápida y compatible con móvil.</p>
+      <div class="period-row">
+        <label>Periodo publicado
+          <select id="period" disabled><option>Cargando…</option></select>
+        </label>
+        <span class="status-pill">Vigente</span>
+      </div>
+      <div class="hero-links">
+        <button id="openCampus" class="hero-link" type="button">Mapa del campus ↗</button>
+        <a id="calendarLink" class="hero-link" href="#" target="_blank" rel="noopener">Calendario escolar ↗</a>
+        <a id="servicesLink" class="hero-link" href="#" target="_blank" rel="noopener">Directorio y servicios UTEQ ↗</a>
+      </div>
+    </div>
+    <div class="hero-campus" aria-hidden="true">
+      <svg viewBox="0 0 540 360" role="img" aria-label="Esquema sutil de edificios basado en el mapa del campus">
+        <path class="campus-road road-main" d="M76 278 C150 222 207 195 290 165 C365 139 413 106 465 59"/>
+        <path class="campus-road road-secondary" d="M178 320 C251 271 315 254 401 245"/>
+        <g class="hero-building pidet"><rect x="410" y="31" width="93" height="44" rx="12"/><text x="456" y="58">PIDET</text></g>
+        <g class="hero-building cic"><rect x="356" y="94" width="96" height="44" rx="12"/><text x="404" y="121">CIC 4.0</text></g>
+        <g class="hero-building nano"><rect x="105" y="181" width="92" height="44" rx="12"/><text x="151" y="208">Nano</text></g>
+        <g class="hero-building h"><rect x="185" y="230" width="72" height="42" rx="11"/><text x="221" y="256">H</text></g>
+        <g class="hero-building g"><rect x="382" y="175" width="72" height="42" rx="11"/><text x="418" y="201">G</text></g>
+        <g class="hero-building i"><rect x="272" y="253" width="72" height="42" rx="11"/><text x="308" y="279">I</text></g>
+        <g class="hero-building f"><rect x="405" y="278" width="72" height="42" rx="11"/><text x="441" y="304">F</text></g>
+      </svg>
+      <small>Esquema sutil basado en la disposición del campus</small>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Resumen del periodo">
+    <article><strong id="statGroups">—</strong><span>grupos</span></article>
+    <article><strong id="statTeachers">—</strong><span>profesores</span></article>
+    <article><strong id="statTutors">—</strong><span>tutores</span></article>
+    <article><strong id="statBuildings">—</strong><span>edificios</span></article>
+    <article><strong id="statRooms">—</strong><span>salones</span></article>
+  </section>
+
+  <section id="consulta" class="workspace" aria-labelledby="queryTitle">
+    <div class="workspace-head">
+      <div><span class="eyebrow dark">CONSULTA</span><h2 id="queryTitle">¿Qué estás buscando?</h2></div>
+      <button id="refresh" class="text-button" type="button">↻ Actualizar</button>
+    </div>
+
+    <nav class="primary-tabs" aria-label="Secciones de consulta">
+      <button type="button" data-section="groups" class="active" aria-pressed="true"><span>Grupos</span></button>
+      <button type="button" data-section="people" aria-pressed="false"><span>Personas</span></button>
+      <button type="button" data-section="schedules" aria-pressed="false"><span>Horarios</span></button>
+      <button type="button" data-section="location" aria-pressed="false"><span>Ubicación</span></button>
+    </nav>
+
+    <div id="subnav" class="subnav" aria-label="Opciones de sección"></div>
+
+    <div class="search-row">
+      <label class="search-box"><span>⌕</span><input id="search" type="search" autocomplete="off" placeholder="Busca grupo, tutor, profesor, carrera o aula…"><button id="clear" type="button" hidden aria-label="Limpiar búsqueda">×</button></label>
+      <label id="careerWrap" class="filter">Carrera<select id="career"><option value="">Todas las carreras</option></select></label>
+    </div>
+
+    <div id="status" class="status" role="status">Cargando información…</div>
+    <div class="results-head"><h3 id="resultTitle">Grupos del periodo</h3><span id="count"></span></div>
+    <div id="results"></div>
+  </section>
+
+  <aside class="help"><span>i</span><p>La consulta muestra únicamente la última publicación confirmada. Los cambios preparados en Administración no son visibles hasta que se publican.</p></aside>
+</main>
+
+<footer class="shell footer">
+  <div><span>Consulta DIN · División Industrial · Universidad Tecnológica de Querétaro</span><span id="authorLine">Diseño, desarrollo y administración: —</span><span id="visitsLine">Contador de visitas en segundo plano</span></div>
+  <nav><a href="lite.html">Versión ligera</a><a href="admin.html">Administración</a></nav>
+</footer>
+
+<dialog id="detailDialog" class="detail-dialog">
+  <div class="dialog-head"><div><span class="eyebrow dark" id="detailEyebrow">DETALLE</span><h2 id="detailTitle">Información</h2></div><button id="closeDetail" class="close" type="button" aria-label="Cerrar">×</button></div>
+  <div id="detailBody"></div>
+</dialog>
+
+<dialog id="mapDialog" class="map-dialog">
+  <div class="dialog-head"><div><span class="eyebrow dark">CROQUIS</span><h2 id="mapTitle">Plano</h2></div><button id="closeMap" class="close" type="button">×</button></div>
+  <div class="map-toolbar"><label>Planta<select id="floor"></select></label><div><button id="zoomOut" type="button">−</button><button id="zoomReset" type="button">Ajustar</button><button id="zoomIn" type="button">+</button></div></div>
+  <div class="map-scroll"><div id="mapCanvas"></div></div>
+</dialog>
+
+<dialog id="campusDialog" class="campus-dialog">
+  <div class="dialog-head"><div><span class="eyebrow dark">CAMPUS</span><h2>Mapa del campus</h2></div><button id="closeCampus" class="close" type="button">×</button></div>
+  <div class="campus-layout">
+    <div><div class="campus-tools"><button id="campusMinus" type="button">−</button><button id="campusFit" type="button">Ajustar</button><button id="campusPlus" type="button">+</button></div><div class="campus-scroll"><div id="campusCanvas"></div></div></div>
+    <aside><div id="campusList" class="campus-list"></div><section id="campusInfo" class="campus-info"></section></aside>
+  </div>
+</dialog>
+
+<noscript><div class="noscript">Consulta DIN requiere JavaScript. También puedes utilizar la <a href="lite.html">versión ligera</a>.</div></noscript>
+</body>
+</html>
