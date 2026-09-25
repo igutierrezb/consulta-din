@@ -63,3 +63,63 @@
   .top-admin-link{padding:7px 8px}
   .top-admin-link span:last-child{display:none}
 }
+
+
+/* ===== Consulta DIN R6 · refinamiento solicitado ===== */
+.hero{grid-template-columns:minmax(0,1.32fr) minmax(330px,.68fr);align-items:stretch}
+.hero-copy{padding:36px 32px 30px 38px}
+.hero-campus{border-left:0!important;background:transparent!important;padding:28px 24px 20px;justify-content:center}
+.hero-campus:before{content:"";position:absolute;inset:20px 18px;border-radius:22px;background:rgba(255,255,255,.025);pointer-events:none}
+.hero-campus-head{left:26px;top:24px}
+.hero-campus svg{position:relative;z-index:1;max-width:430px;background:none!important}
+.hero-campus small{position:relative;z-index:1;max-width:390px;text-align:left;width:100%;line-height:1.35}
+.hero-building{cursor:pointer;outline:none}
+.hero-building rect{transition:.16s ease;fill:rgba(255,255,255,.09)}
+.hero-building:hover rect,.hero-building:focus rect{fill:rgba(255,255,255,.20);stroke:#fff;stroke-width:2.2}
+.hero-building:hover text,.hero-building:focus text{fill:#fff}
+.hero-building:focus-visible{filter:drop-shadow(0 0 0 rgba(0,0,0,0))}
+.institutional-links{display:flex;flex-wrap:nowrap;gap:7px;max-width:620px;margin-top:16px}
+.institutional-links .hero-link{flex:1 1 0;min-width:0;min-height:42px;padding:7px 9px;border-radius:9px;font-size:12px;line-height:1.15}
+.institutional-links .hero-link .ui-icon{width:24px;height:24px;min-width:24px}
+.institutional-links .hero-link .ui-icon svg{width:16px;height:16px}
+
+.location-subnav{justify-content:center;gap:10px;margin-top:12px}
+.location-subnav button{min-width:145px;border-color:#bd5360;background:#fff6f7;color:#a53442}
+.location-subnav button.active{background:#a93643;border-color:#a93643;color:#fff;box-shadow:0 5px 14px rgba(169,54,67,.16)}
+.location-subnav button:hover{border-color:#a93643;background:#faedef}
+.location-subnav button.active:hover{background:#982d39}
+
+.campus-inline-block{margin-top:12px}
+.campus-inline-copy{text-align:center;margin:2px auto 12px;max-width:700px}
+.campus-inline-copy strong,.campus-inline-copy span{display:block}
+.campus-inline-copy span{font-size:12px;color:#708892;margin-top:3px}
+.campus-inline-preview{display:block;width:min(100%,760px);margin:0 auto;border:1px solid #c8dade;border-radius:16px;padding:10px;background:#f7fafb;cursor:pointer;overflow:hidden;box-shadow:0 7px 18px rgba(20,64,74,.04)}
+.campus-inline-preview:hover{border-color:#9ebfc7;box-shadow:0 10px 24px rgba(20,64,74,.08)}
+.campus-inline-preview .campus-svg{width:100%;height:auto;max-height:480px;object-fit:contain;background:#eef4f4;border-radius:11px}
+.campus-inline-preview>span{display:block;padding:8px 6px 2px;font-size:12px;font-weight:750;color:#2b6672;text-align:center}
+
+.campus-label rect{fill:rgba(145,35,47,.91);stroke:rgba(255,255,255,.92);stroke-width:2}
+.campus-label text{font-size:19px;font-weight:900;fill:#fff;text-anchor:middle;dominant-baseline:middle}
+.campus-floor-card{border:1px solid var(--line);border-radius:11px;padding:10px;margin:8px 0;background:#fff}
+.campus-floor-card>div:first-child{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.campus-floor-card small{color:#708892}
+.campus-group-tags{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.campus-group-tags span{display:inline-flex;border-radius:999px;padding:3px 7px;background:#edf4f5;color:#315f69;font-size:9px;font-weight:750}
+.campus-group-tags .empty-tag{background:#f5f5f5;color:#7f8d91}
+.campus-floor-card .soft{padding:6px 9px;color:#326570;border-color:#bdd0d5;background:#f9fbfb}
+
+@media(max-width:850px){
+  .hero{display:block}
+  .hero-campus{display:none!important}
+  .hero-copy{padding:30px 28px}
+  .institutional-links{display:flex;flex-wrap:nowrap;max-width:none}
+}
+@media(max-width:620px){
+  .institutional-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .institutional-links .hero-link{min-height:40px;padding:6px 5px;font-size:10px;justify-content:center}
+  .institutional-links .hero-link .ui-icon{display:none}
+  .location-subnav{display:flex!important;justify-content:center}
+  .location-subnav button{min-width:0;flex:0 1 145px}
+  .campus-inline-preview{padding:6px;border-radius:12px}
+  .campus-inline-preview .campus-svg{max-height:390px}
+}
