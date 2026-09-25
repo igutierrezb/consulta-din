@@ -22,12 +22,11 @@
 <header class="topbar">
   <div class="shell topbar-inner">
     <a class="brand" href="./" aria-label="Consulta DIN, inicio">
-      <span class="brand-mark">⚙</span>
-      <span><strong>DIN</strong><small>DIVISIÓN INDUSTRIAL · UTEQ</small></span>
+      <span class="brand-mark" aria-hidden="true">▦</span>
+      <span><strong>Consulta DIN</strong><small>DIVISIÓN INDUSTRIAL · UTEQ</small></span>
     </a>
     <div class="top-actions">
       <div class="connection-box"><strong id="connection">Conectando…</strong><small id="updated"></small></div>
-      <a class="admin-link" href="admin.html">Administración ↗</a>
     </div>
   </div>
 </header>
@@ -36,39 +35,40 @@
   <section class="hero" aria-labelledby="heroTitle">
     <div class="hero-copy">
       <span class="eyebrow">CONSULTA ACADÉMICA</span>
-      <h1 id="heroTitle">Tu información académica,<br><em>en un solo lugar.</em></h1>
-      <p>Consulta grupo, tutor, profesor, aula, horarios y ubicación de tus espacios con una navegación clara, rápida y compatible con móvil.</p>
+      <h1 id="heroTitle">Consulta DIN<br><em>tu División, más cerca.</em></h1>
+      <p>Encuentra grupos, maestros, tutorías, horarios, salones y croquis de la División Industrial de forma rápida y visual.</p>
       <div class="period-row">
         <label>Periodo publicado
           <select id="period" disabled><option>Cargando…</option></select>
         </label>
         <span class="status-pill">Vigente</span>
       </div>
-      <div class="hero-links">
-        <button id="openCampus" class="hero-link" type="button">Mapa del campus ↗</button>
-        <a id="calendarLink" class="hero-link" href="#" target="_blank" rel="noopener">Calendario escolar ↗</a>
-        <a id="servicesLink" class="hero-link" href="#" target="_blank" rel="noopener">Directorio y servicios UTEQ ↗</a>
+      <div class="hero-links institutional-links">
+        <button id="openCampus" class="hero-link" type="button"><span aria-hidden="true">🗺️</span><span>Mapa del campus</span></button>
+        <a id="calendarLink" class="hero-link" href="#" target="_blank" rel="noopener"><span aria-hidden="true">📅</span><span>Calendario escolar</span></a>
+        <a id="servicesLink" class="hero-link" href="#" target="_blank" rel="noopener"><span aria-hidden="true">☎️</span><span>Directorio y servicios</span></a>
       </div>
     </div>
     <div class="hero-campus" aria-hidden="true">
-      <svg viewBox="0 0 540 360" role="img" aria-label="Esquema sutil de edificios basado en el mapa del campus">
-        <path class="campus-road road-main" d="M76 278 C150 222 207 195 290 165 C365 139 413 106 465 59"/>
-        <path class="campus-road road-secondary" d="M178 320 C251 271 315 254 401 245"/>
-        <g class="hero-building pidet"><rect x="410" y="31" width="93" height="44" rx="12"/><text x="456" y="58">PIDET</text></g>
-        <g class="hero-building cic"><rect x="356" y="94" width="96" height="44" rx="12"/><text x="404" y="121">CIC 4.0</text></g>
-        <g class="hero-building nano"><rect x="105" y="181" width="92" height="44" rx="12"/><text x="151" y="208">Nano</text></g>
-        <g class="hero-building h"><rect x="185" y="230" width="72" height="42" rx="11"/><text x="221" y="256">H</text></g>
-        <g class="hero-building g"><rect x="382" y="175" width="72" height="42" rx="11"/><text x="418" y="201">G</text></g>
-        <g class="hero-building i"><rect x="272" y="253" width="72" height="42" rx="11"/><text x="308" y="279">I</text></g>
-        <g class="hero-building f"><rect x="405" y="278" width="72" height="42" rx="11"/><text x="441" y="304">F</text></g>
+      <svg viewBox="0 0 560 390" role="img" aria-label="Esquema de edificios de la División Industrial basado en la disposición del campus">
+        <path class="campus-road road-main" d="M78 330 C145 276 210 235 287 205 C360 176 425 126 486 55"/>
+        <path class="campus-road road-secondary" d="M154 353 C229 315 310 296 430 294"/>
+        <circle class="campus-node" cx="486" cy="55" r="4"/><circle class="campus-node" cx="410" cy="126" r="4"/><circle class="campus-node" cx="285" cy="205" r="4"/>
+        <g class="hero-building pidet"><rect x="418" y="24" width="104" height="48" rx="14"/><text x="470" y="54">PIDET</text></g>
+        <g class="hero-building cic"><rect x="360" y="92" width="108" height="48" rx="14"/><text x="414" y="122">CIC 4.0</text></g>
+        <g class="hero-building nano"><rect x="94" y="188" width="104" height="48" rx="14"/><text x="146" y="218">NANO</text></g>
+        <g class="hero-building h"><rect x="158" y="249" width="92" height="46" rx="13"/><text x="204" y="278">H · Ambiental</text></g>
+        <g class="hero-building g"><rect x="369" y="192" width="82" height="46" rx="13"/><text x="410" y="221">G</text></g>
+        <g class="hero-building i"><rect x="259" y="287" width="82" height="46" rx="13"/><text x="300" y="316">I</text></g>
+        <g class="hero-building f"><rect x="394" y="315" width="82" height="46" rx="13"/><text x="435" y="344">F</text></g>
       </svg>
-      <small>Esquema sutil basado en la disposición del campus</small>
+      <small>Edificios DIN · disposición inspirada en el mapa del campus</small>
     </div>
   </section>
 
   <section class="stats" aria-label="Resumen del periodo">
     <article><strong id="statGroups">—</strong><span>grupos</span></article>
-    <article><strong id="statTeachers">—</strong><span>profesores</span></article>
+    <article><strong id="statTeachers">—</strong><span>maestros</span></article>
     <article><strong id="statTutors">—</strong><span>tutores</span></article>
     <article><strong id="statBuildings">—</strong><span>edificios</span></article>
     <article><strong id="statRooms">—</strong><span>salones</span></article>
@@ -81,10 +81,10 @@
     </div>
 
     <nav class="primary-tabs" aria-label="Secciones de consulta">
-      <button type="button" data-section="groups" class="active" aria-pressed="true"><span>Grupos</span></button>
-      <button type="button" data-section="people" aria-pressed="false"><span>Personas</span></button>
-      <button type="button" data-section="schedules" aria-pressed="false"><span>Horarios</span></button>
-      <button type="button" data-section="location" aria-pressed="false"><span>Ubicación</span></button>
+      <button type="button" data-section="groups" class="active" aria-pressed="true"><span class="tab-icon" aria-hidden="true">👥</span><span>Grupos</span><small>Consulta tu grupo</small></button>
+      <button type="button" data-section="people" aria-pressed="false"><span class="tab-icon" aria-hidden="true">🧑‍🏫</span><span>Maestros</span><small>Docentes y tutores</small></button>
+      <button type="button" data-section="schedules" aria-pressed="false"><span class="tab-icon" aria-hidden="true">🗓️</span><span>Horarios</span><small>Maestros, grupos y salones</small></button>
+      <button type="button" data-section="location" aria-pressed="false"><span class="tab-icon" aria-hidden="true">📍</span><span>Encuentra tu salón</span><small>Croquis y campus</small></button>
     </nav>
 
     <div id="subnav" class="subnav" aria-label="Opciones de sección"></div>
@@ -103,8 +103,8 @@
 </main>
 
 <footer class="shell footer">
-  <div><span>Consulta DIN · División Industrial · Universidad Tecnológica de Querétaro</span><span id="authorLine">Diseño, desarrollo y administración: —</span><span id="visitsLine">Contador de visitas en segundo plano</span></div>
-  <nav><a href="lite.html">Versión ligera</a><a href="admin.html">Administración</a></nav>
+  <div class="footer-copy"><span>Consulta DIN · División Industrial · Universidad Tecnológica de Querétaro</span><span id="authorLine">Diseño, desarrollo y administración: —</span></div>
+  <div class="footer-tools"><nav><a href="lite.html">Versión ligera</a><a href="admin.html">Administración</a></nav><span id="visitsLine">Contador de visitas en segundo plano</span></div>
 </footer>
 
 <dialog id="detailDialog" class="detail-dialog">
