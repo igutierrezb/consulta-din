@@ -123,3 +123,25 @@
   .campus-inline-preview{padding:6px;border-radius:12px}
   .campus-inline-preview .campus-svg{max-height:390px}
 }
+
+
+/* ===== Consulta DIN R7 · correcciones finas 25-09-2026 ===== */
+/* Portada escritorio: mapa esquemático más legible sin romper composición. */
+@media(min-width:851px){
+  .hero{grid-template-columns:minmax(0,1.22fr) minmax(390px,.78fr)}
+  .hero-campus{padding:26px 18px 18px}
+  .hero-campus:before{inset:16px 10px;border-radius:20px;background:rgba(255,255,255,.032)}
+  .hero-campus svg{max-width:500px;margin-top:18px}
+  .hero-campus-head{left:18px;top:18px}
+  .hero-campus-head strong{font-size:15px}
+  .hero-building rect{fill:rgba(255,255,255,.13);stroke-width:1.9}
+  .hero-building text{font-size:13px;letter-spacing:.15px}
+  .institutional-links{max-width:560px;gap:6px}
+  .institutional-links .hero-link{min-height:38px;padding:6px 8px;font-size:11px;border-radius:8px}
+  .institutional-links .hero-link .ui-icon{width:22px;height:22px;min-width:22px}
+  .institutional-links .hero-link .ui-icon svg{width:14px;height:14px}
+}
+/* Etiqueta montada dentro del resaltado: compacta y subordinada a la letra del mapa. */
+.campus-label rect{fill:rgba(145,35,47,.86);stroke:rgba(255,255,255,.95);stroke-width:1.7;filter:drop-shadow(0 2px 4px rgba(76,20,27,.20))}
+.campus-label text{font-size:17px;font-weight:850}
+@media(max-width:620px){.campus-label text{font-size:20px}}
