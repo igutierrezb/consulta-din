@@ -145,3 +145,8 @@
 .campus-label rect{fill:rgba(145,35,47,.86);stroke:rgba(255,255,255,.95);stroke-width:1.7;filter:drop-shadow(0 2px 4px rgba(76,20,27,.20))}
 .campus-label text{font-size:17px;font-weight:850}
 @media(max-width:620px){.campus-label text{font-size:20px}}
+
+
+/* === Consulta DIN R8 · ajustes finos escritorio/móvil === */
+@media(min-width:851px){.hero{grid-template-columns:minmax(0,1.18fr) minmax(420px,.82fr);background:linear-gradient(132deg,#075f70 0%,#087785 45%,#168b83 100%)}.hero-campus{padding:20px 14px 16px;background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.11))!important;border-left:1px solid rgba(255,255,255,.10)!important}.hero-campus:before{inset:12px 8px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07)}.hero-campus svg{max-width:545px!important;margin-top:10px!important;transform:scale(1.055);transform-origin:center}.hero-building rect{fill:rgba(255,255,255,.16)!important;stroke:rgba(239,255,248,.88)!important;stroke-width:2!important}.hero-building text{font-size:13.5px!important;font-weight:850!important}.hero-building:hover rect,.hero-building:focus rect{fill:rgba(255,255,255,.25)!important;stroke:#fff!important}.institutional-links .hero-link{min-height:36px!important;padding:5px 8px!important;font-size:10.5px!important}}
+.campus-label rect{fill:rgba(145,35,47,.88)!important;stroke:rgba(255,255,255,.96)!important;stroke-width:1.6!important;filter:drop-shadow(0 2px 4px rgba(76,20,27,.18))}.campus-label text{font-size:16px!important;font-weight:900!important}@media(max-width:850px){.hero-campus{display:none!important}}@media(max-width:620px){.campus-label text{font-size:19px!important}}
