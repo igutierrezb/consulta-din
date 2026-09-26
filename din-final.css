@@ -150,3 +150,23 @@
 /* === Consulta DIN R8 · ajustes finos escritorio/móvil === */
 @media(min-width:851px){.hero{grid-template-columns:minmax(0,1.18fr) minmax(420px,.82fr);background:linear-gradient(132deg,#075f70 0%,#087785 45%,#168b83 100%)}.hero-campus{padding:20px 14px 16px;background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.11))!important;border-left:1px solid rgba(255,255,255,.10)!important}.hero-campus:before{inset:12px 8px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07)}.hero-campus svg{max-width:545px!important;margin-top:10px!important;transform:scale(1.055);transform-origin:center}.hero-building rect{fill:rgba(255,255,255,.16)!important;stroke:rgba(239,255,248,.88)!important;stroke-width:2!important}.hero-building text{font-size:13.5px!important;font-weight:850!important}.hero-building:hover rect,.hero-building:focus rect{fill:rgba(255,255,255,.25)!important;stroke:#fff!important}.institutional-links .hero-link{min-height:36px!important;padding:5px 8px!important;font-size:10.5px!important}}
 .campus-label rect{fill:rgba(145,35,47,.88)!important;stroke:rgba(255,255,255,.96)!important;stroke-width:1.6!important;filter:drop-shadow(0 2px 4px rgba(76,20,27,.18))}.campus-label text{font-size:16px!important;font-weight:900!important}@media(max-width:850px){.hero-campus{display:none!important}}@media(max-width:620px){.campus-label text{font-size:19px!important}}
+
+/* === Consulta DIN V9.0 · portada más visual, sobria y compacta === */
+.brand strong::after{content:"V. 9.0";display:inline-flex;vertical-align:super;margin-left:7px;padding:1px 5px;border:1px solid rgba(255,255,255,.28);border-radius:999px;font-size:8px;line-height:1.2;letter-spacing:.035em;font-weight:750;opacity:.76}
+@media(min-width:851px){
+  .hero{grid-template-columns:minmax(0,1.14fr) minmax(440px,.86fr);background:linear-gradient(128deg,#075d6e 0%,#087482 43%,#148b82 100%)}
+  .hero-campus{padding:18px 10px 15px!important;background:linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.115))!important;border-left:1px solid rgba(255,255,255,.12)!important;isolation:isolate}
+  .hero-campus:before{inset:10px 7px!important;border-radius:24px!important;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(224,247,241,.035))!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .hero-campus:after{content:"";position:absolute;z-index:0;width:68%;height:60%;right:7%;bottom:8%;border-radius:50%;background:radial-gradient(ellipse,rgba(178,235,220,.10),rgba(178,235,220,0) 68%);pointer-events:none}
+  .hero-campus svg{z-index:1;max-width:570px!important;margin-top:4px!important;transform:scale(1.095)!important;transform-origin:52% 53%;filter:drop-shadow(0 10px 21px rgba(2,45,53,.12))!important}
+  .hero-campus-head{z-index:2;left:16px!important;top:16px!important;padding:5px 8px;border-radius:9px;background:rgba(5,80,91,.20);backdrop-filter:blur(2px)}
+  .hero-campus-head span{opacity:.76;letter-spacing:.12em}
+  .hero-campus-head strong{font-size:15px!important;letter-spacing:-.01em}
+  .hero-campus small{z-index:2;max-width:420px!important;margin-top:0!important;opacity:.82!important;text-align:center!important}
+  .hero-building rect{fill:rgba(255,255,255,.17)!important;stroke:rgba(239,255,250,.92)!important;stroke-width:2!important;filter:drop-shadow(0 4px 5px rgba(2,49,57,.10));transition:transform .17s ease,fill .17s ease,stroke .17s ease}
+  .hero-building text{font-size:13.7px!important;font-weight:880!important;letter-spacing:.12px!important;pointer-events:none}
+  .hero-building:hover rect,.hero-building:focus rect{fill:rgba(255,255,255,.27)!important;stroke:#fff!important;transform:translateY(-1px)}
+  .hero-building.ref rect{fill:rgba(255,225,139,.13)!important;stroke:rgba(255,239,188,.92)!important}
+  .institutional-links .hero-link{min-height:35px!important;padding:5px 8px!important;font-size:10.5px!important}
+}
+@media(max-width:850px){.hero-campus{display:none!important}.brand strong::after{font-size:7px;margin-left:5px}}
